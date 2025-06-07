@@ -1,12 +1,9 @@
 package com.example.bunnypost.data.remote
 
-import com.example.bunnypost.data.remote.model.LoginRequest
 import com.example.bunnypost.data.remote.model.LoginResponse
+import com.example.bunnypost.data.remote.model.PostsResponse
 import com.example.bunnypost.data.remote.model.SignUpResponse
-import retrofit2.http.Body
-import retrofit2.http.FieldMap
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.POST
+import retrofit2.http.*
 
 interface ApiService {
     @FormUrlEncoded
@@ -16,4 +13,12 @@ interface ApiService {
     @FormUrlEncoded
     @POST("auth/signup")
     suspend fun signup(@FieldMap params: Map<String, String>): SignUpResponse
+
+    @GET("posts")
+    suspend fun getPosts(
+        @Header("Authorization") token: String,
+        @Query("search") searchQuery: String?,
+        @Query("page") page: Int,
+        @Query("limit") limit: Int
+    ): PostsResponse
 }

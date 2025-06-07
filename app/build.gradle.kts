@@ -76,6 +76,8 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.material)
+    implementation(libs.accompanist.systemuicontroller)
     kapt(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
     testImplementation(libs.junit)
