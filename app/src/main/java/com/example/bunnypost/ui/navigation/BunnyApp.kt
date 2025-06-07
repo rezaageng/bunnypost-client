@@ -3,21 +3,33 @@ package com.example.bunnypost.ui.navigation
 import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.bunnypost.ui.screen.LoginScreen
-import com.example.bunnypost.ui.screen.MainScreen
-import com.example.bunnypost.ui.screen.SignUpScreen
-import com.example.bunnypost.ui.screen.SplashScreen
+import com.example.bunnypost.ui.screen.*
 import com.example.bunnypost.viewmodel.AuthViewModel
 
 @Composable
 fun BunnyApp() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = hiltViewModel()
+
+    // Listen for global logout events
+    LaunchedEffect(Unit) {
+        authViewModel.sessionManager.logoutEvent.collect {
+            navController.navigate("login") {
+                // Pop entire back stack to prevent going back to authenticated screens
+                popUpTo(navController.graph.findStartDestination().id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
 
     NavHost(
         navController = navController, startDestination = "splash", modifier = Modifier.background(

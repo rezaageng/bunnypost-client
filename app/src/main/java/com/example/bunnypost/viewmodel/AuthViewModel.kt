@@ -1,9 +1,9 @@
 package com.example.bunnypost.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bunnypost.data.repository.AuthRepository
+import com.example.bunnypost.di.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +14,11 @@ import com.example.bunnypost.data.helper.Result
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    val sessionManager: SessionManager // Make session manager accessible to the UI
 ) : ViewModel() {
+
+    // ... existing code
 
     private val _loginState = MutableStateFlow<Result<String>?>(null)
     val loginState: StateFlow<Result<String>?> = _loginState.asStateFlow()
@@ -37,7 +40,6 @@ class AuthViewModel @Inject constructor(
     }
 
     fun login(email: String, password: String) {
-        Log.d("AuthViewModel", "Login called with email: $email, password: $password")
         viewModelScope.launch {
             authRepository.login(email, password).collect { result ->
                 _loginState.value = result
