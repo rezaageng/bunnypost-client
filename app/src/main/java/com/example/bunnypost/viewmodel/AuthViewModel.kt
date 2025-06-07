@@ -20,6 +20,9 @@ class AuthViewModel @Inject constructor(
     private val _loginState = MutableStateFlow<Result<String>?>(null)
     val loginState: StateFlow<Result<String>?> = _loginState.asStateFlow()
 
+    private val _signUpState = MutableStateFlow<Result<String>?>(null)
+    val signUpState: StateFlow<Result<String>?> = _signUpState.asStateFlow()
+
     private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
     val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
 
@@ -45,11 +48,24 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun logout() {
+    fun signup(email: String, password: String, username: String, firstName: String, lastName: String) {
+        viewModelScope.launch {
+            authRepository.signup(email, password, username, firstName, lastName).collect { result ->
+                _signUpState.value = result
+                if (result is Result.Success) {
+                    _isLoggedIn.value = true
+                }
+            }
+        }
+    }
+
+    fun logout(onLogoutFinished: () -> Unit) {
         viewModelScope.launch {
             authRepository.logout()
             _isLoggedIn.value = false
             _loginState.value = null
+            _signUpState.value = null
+            onLogoutFinished()
         }
     }
 }
