@@ -2,7 +2,6 @@ package com.example.bunnypost.di
 
 import com.example.bunnypost.data.remote.ApiService
 import com.example.bunnypost.BuildConfig
-import com.example.bunnypost.data.local.UserPreferences
 import com.example.bunnypost.data.remote.AuthInterceptor
 import dagger.Module
 import dagger.Provides
@@ -17,15 +16,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule{
-    @Provides
-    @Singleton
-    fun provideAuthInterceptor(
-        userPreferences: UserPreferences,
-        sessionManager: SessionManager
-    ): AuthInterceptor {
-        return AuthInterceptor(userPreferences, sessionManager)
-    }
-
     @Provides
     @Singleton
     fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {

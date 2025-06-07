@@ -38,11 +38,12 @@ class PostViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
             try {
-                // On refresh, always fetch page 1
-                val response = postRepository.fetchPosts(page = 1)
+                currentPage = 1
+                val response = postRepository.fetchPosts(page = currentPage)
                 totalPages = response.pagination.totalPages
-                // Set the next page to fetch to 2
-                currentPage = 2
+                if (currentPage < totalPages) {
+                    currentPage++
+                }
             } catch (e: Exception) {
                 _error.value = e.message
             } finally {
@@ -52,17 +53,16 @@ class PostViewModel @Inject constructor(
     }
 
     fun loadMorePosts() {
-        // This guard clause is now the single point of control for stopping pagination
         if (_isLoading.value || _isPaginating.value || currentPage > totalPages) return
 
         viewModelScope.launch {
             _isPaginating.value = true
             try {
                 val response = postRepository.fetchPosts(page = currentPage)
-                // Update totalPages in case it has changed
                 totalPages = response.pagination.totalPages
-                // Always increment the page number for the next fetch
-                currentPage++
+                if (currentPage < totalPages) {
+                    currentPage++
+                }
             } catch (e: Exception) {
                 _error.value = e.message
             } finally {

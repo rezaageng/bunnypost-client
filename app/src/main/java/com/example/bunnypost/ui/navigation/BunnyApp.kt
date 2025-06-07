@@ -30,7 +30,7 @@ fun BunnyApp() {
             }
         }
     }
-
+    //... NavHost code remains the same
     NavHost(
         navController = navController, startDestination = "splash", modifier = Modifier.background(
             MaterialTheme.colorScheme.background
