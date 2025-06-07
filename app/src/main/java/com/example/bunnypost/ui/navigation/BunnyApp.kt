@@ -30,11 +30,19 @@ fun BunnyApp() {
                     navController.navigate("home") {
                         popUpTo("login") { inclusive = true }
                     }
+                },
+                signUp = {
+                    navController.navigate("signup") {
+                        popUpTo("login") { inclusive = true }
+                    }
                 }
             )
         }
         composable("home") {
             // Tambahkan HomeScreen di sini nanti
+        }
+        composable("signup") {
+            // Tambahkan SignUpScreen di sini nanti
         }
     }
 }
