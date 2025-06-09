@@ -17,4 +17,8 @@ interface PostDao {
 
     @Query("DELETE FROM posts")
     fun clearAllPosts(): Int
+
+    @Query("SELECT * FROM posts WHERE title LIKE '%' || :query || '%' OR content LIKE '%' || :query || '%' ORDER BY createdAt DESC")
+    fun searchPosts(query: String): Flow<List<PostEntity>>
+
 }
