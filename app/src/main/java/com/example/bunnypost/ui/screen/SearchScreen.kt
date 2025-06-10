@@ -96,13 +96,13 @@ fun SearchScreen(
 
             1 -> {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(userResults) { post ->
+                    items(userResults) { user ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(12.dp)
                                 .clickable {
-                                    navController.navigate("profile/${post.authorUsername}")
+                                    navController.navigate("profile/${user.username}")
                                 }
                         ) {
                             Image(
@@ -114,12 +114,12 @@ fun SearchScreen(
                             )
                             Column {
                                 Text(
-                                    text = "${post.authorFirstName} ${post.authorLastName}",
+                                    text = "${user.firstName} ${user.lastName}",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp
                                 )
                                 Text(
-                                    text = "@${post.authorUsername}",
+                                    text = "@${user.username}",
                                     color = Color.Gray,
                                     fontSize = 14.sp
                                 )
@@ -127,6 +127,8 @@ fun SearchScreen(
                         }
                         Divider()
                     }
-
                 }
-            }}}}
+            }
+        }
+    }
+}
