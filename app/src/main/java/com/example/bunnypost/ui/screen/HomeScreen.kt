@@ -99,10 +99,11 @@ fun HomeScreen(
                 PostItem(
                     post = post,
                     onClick = { onPostClick(post.id) },
-                    // Hubungkan ke fungsi baru di ViewModel
-                    onLikeClick = { viewModel.likePostFromList(post.id) },
+                    // Gunakan fungsi toggle yang sudah kita buat
+                    onLikeClick = { viewModel.toggleLikeOnList(post.id) },
                     likesCount = postEntity.likesCount,
-                    commentsCount = postEntity.commentsCount
+                    commentsCount = postEntity.commentsCount,
+                    isLiked = postEntity.isLiked // <-- TAMBAHKAN BARIS INI
                 )
             }
 

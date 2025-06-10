@@ -10,6 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class PostRepository @Inject constructor(
@@ -44,6 +46,23 @@ class PostRepository @Inject constructor(
         apiService.likePost("Bearer $token", postId)
     }
 
+    suspend fun unlikePost(postId: String) {
+        val token =
+            userPreferences.getToken().firstOrNull() ?: throw Exception("User not logged in")
+        val userId =
+            userPreferences.getUserId().firstOrNull() ?: throw Exception("User ID not found")
+
+        // 1. Dapatkan detail post untuk menemukan ID like
+        val post = getPostById(postId)
+
+        // 2. Cari 'like' yang dibuat oleh pengguna saat ini
+        val like = post.likes.find { it.authorId == userId }
+            ?: throw Exception("User has not liked this post")
+
+        // 3. Panggil API untuk menghapus like menggunakan ID-nya
+        apiService.unlikePost("Bearer $token", like.id)
+    }
+
     suspend fun addComment(postId: String, content: String) {
         val token = userPreferences.getToken().first() ?: throw Exception("User not logged in")
         apiService.addComment("Bearer $token", postId, content)
@@ -52,6 +71,10 @@ class PostRepository @Inject constructor(
     // fetchPosts dikembalikan ke versi yang lebih sederhana tanpa 'isLiked'
     suspend fun fetchPosts(page: Int): PostsResponse {
         val token = userPreferences.getToken().first() ?: throw Exception("User not logged in")
+
+        // --> TAMBAHKAN INI: Ambil ID pengguna saat ini
+        val userId = userPreferences.getUserId().firstOrNull()
+
         val response = apiService.getPosts(
             token = "Bearer $token",
             searchQuery = null,
@@ -61,6 +84,10 @@ class PostRepository @Inject constructor(
 
         if (response.success) {
             val postEntities = response.data.map { post ->
+                // --> UBAH DI SINI: tambahkan logika untuk 'isLiked'
+                val isLikedByUser =
+                    userId?.let { uId -> post.likes.any { it.authorId == uId } } ?: false
+
                 PostEntity(
                     id = post.id,
                     title = post.title,
@@ -71,7 +98,8 @@ class PostRepository @Inject constructor(
                     authorFirstName = post.author.firstName,
                     authorLastName = post.author.lastName,
                     likesCount = post.likes.size,
-                    commentsCount = post.comments.size
+                    commentsCount = post.comments.size,
+                    isLiked = isLikedByUser // <-- SET NILAI isLiked DI SINI
                 )
             }
             withContext(Dispatchers.IO) {
@@ -83,6 +111,12 @@ class PostRepository @Inject constructor(
             return response
         } else {
             throw Exception(response.message ?: "Failed to fetch posts")
+        }
+    }
+
+    suspend fun updatePostInDb(postEntity: PostEntity) {
+        withContext(Dispatchers.IO) {
+            postDao.updatePost(postEntity)
         }
     }
 }

@@ -6,6 +6,8 @@ import com.example.bunnypost.data.remote.model.Post
 import com.example.bunnypost.data.remote.model.PostDetailResponse
 import com.example.bunnypost.data.remote.model.PostsResponse
 import com.example.bunnypost.data.remote.model.SignUpResponse
+import com.example.bunnypost.data.remote.model.MeResponse
+import okhttp3.Response
 import retrofit2.http.*
 
 interface ApiService {
@@ -23,6 +25,11 @@ interface ApiService {
     suspend fun signup(
         @FieldMap params: Map<String, String>
     ): SignUpResponse
+
+    @GET("users/me")
+    suspend fun getMe(
+        @Header("Authorization") token: String
+    ): MeResponse
 
     // 📝 Create new post
     @FormUrlEncoded
@@ -63,5 +70,11 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Field("postId") postId: String,
         @Field("content") content: String
+    )
+
+    @DELETE("likes/{id}")
+    suspend fun unlikePost(
+        @Header("Authorization") token: String,
+        @Path("id") likeId: String
     )
 }

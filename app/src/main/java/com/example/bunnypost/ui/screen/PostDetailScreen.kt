@@ -87,12 +87,15 @@ fun PostDetailScreen(postId: String, viewModel: PostViewModel = hiltViewModel())
                                     count = post.likes.size,
                                     text = "Likes",
                                     isToggled = isLiked,
-                                    onClick = { viewModel.likePostDetail(postId) }
+                                    // --- UBAH BARIS INI ---
+                                    onClick = { viewModel.toggleLikeOnDetail(postId) }
                                 )
                                 CountDisplay(
                                     icon = Icons.Default.Comment,
                                     count = comments.size,
-                                    text = "Comments"
+                                    text = "Comments",
+                                    isToggled = false,
+                                    onClick = { }
                                 )
                             }
                         }
@@ -169,14 +172,10 @@ fun CountDisplay(
     icon: ImageVector,
     count: Int,
     text: String,
-    isToggled: Boolean = false,
-    onClick: (() -> Unit)? = null
+    isToggled: Boolean,
+    onClick: () -> Unit // Tipe data untuk aksi klik
 ) {
-    val modifier = if (onClick != null) {
-        Modifier.clickable(onClick = onClick)
-    } else {
-        Modifier
-    }
+    val modifier = Modifier.clickable(onClick = onClick)
 
     Row(
         modifier = modifier.padding(vertical = 4.dp),
@@ -186,6 +185,7 @@ fun CountDisplay(
         Icon(
             imageVector = icon,
             contentDescription = text,
+            // Gunakan isToggled untuk menentukan warna
             tint = if (isToggled) MaterialTheme.colorScheme.primary else Color.Gray,
             modifier = Modifier.size(20.dp)
         )

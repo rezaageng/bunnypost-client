@@ -12,6 +12,7 @@ import com.example.bunnypost.data.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
@@ -157,73 +158,82 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun likePostDetail(postId: String) {
-        val currentPostDetail = _postDetail.value ?: return
-        val originalPostDetail = currentPostDetail.copy()
-
-        // Asumsikan kita tahu user ID saat ini
-        val currentUserId = "current_user_id" // Perlu diambil dari UserPreferences
-        val isAlreadyLiked = currentPostDetail.likes.any { it.authorId == currentUserId }
-
-        // Update secara optimis
-        val newLikes = if (isAlreadyLiked) {
-            currentPostDetail.likes.filter { it.authorId != currentUserId }
-        } else {
-            // Buat data Like sementara
-            currentPostDetail.likes + com.example.bunnypost.data.remote.model.Like(
-                "temp_like",
-                currentUserId
-            )
-        }
-
-        _postDetail.value = currentPostDetail.copy(likes = newLikes)
-        // Update juga state isLikedByCurrentUser
-        // _isLikedByCurrentUser.value = !isAlreadyLiked
-
+    fun toggleLikeOnDetail(postId: String) {
         viewModelScope.launch {
+            val originalPost = _postDetail.value ?: return@launch
+            val isCurrentlyLiked = isLikedByCurrentUser.value
+
             try {
-                postRepository.likePost(postId)
-                // Refresh data detail untuk sinkronisasi
-                getPostDetail(postId)
+                // 1. Lakukan aksi ke server seperti biasa
+                if (isCurrentlyLiked) {
+                    postRepository.unlikePost(postId)
+                } else {
+                    postRepository.likePost(postId)
+                }
+
+                // 2. KELOLA STATE SECARA MANUAL
+                val currentUserId = userPreferences.getUserId().first()
+                if (currentUserId == null) {
+                    _error.value = "Tidak bisa memproses like, user ID tidak ditemukan."
+                    return@launch
+                }
+
+                // Salin daftar 'likes' ke dalam list yang bisa diubah (mutable)
+                val mutableLikes = originalPost.likes.toMutableList()
+
+                // 3. --- INI ADALAH PERBAIKANNYA ---
+                if (isCurrentlyLiked) {
+                    // Jika tadinya 'liked', cari indeks dari 'like' PERTAMA yang cocok
+                    val indexToRemove = mutableLikes.indexOfFirst { it.authorId == currentUserId }
+                    // Jika ditemukan (indeksnya bukan -1), HAPUS SATU saja dari daftar
+                    if (indexToRemove != -1) {
+                        mutableLikes.removeAt(indexToRemove)
+                    }
+                } else {
+                    // Jika tadinya 'not liked', tambahkan 'like' baru (logika ini sudah benar)
+                    mutableLikes.add(
+                        com.example.bunnypost.data.remote.model.Like(
+                            id = "temp-like-${System.currentTimeMillis()}",
+                            authorId = currentUserId
+                        )
+                    )
+                }
+
+                // 4. Update state _postDetail dengan daftar 'likes' yang sudah dimodifikasi
+                _postDetail.value = originalPost.copy(likes = mutableLikes)
+
             } catch (e: Exception) {
-                _error.value = "Gagal menyukai post."
-                // Rollback
-                _postDetail.value = originalPostDetail
+                _error.value = "Gagal memperbarui status like: ${e.message}"
             }
         }
     }
-
-    fun likePostFromList(postId: String) {
-        val currentList = _postListState.value
-        val postToUpdate = currentList.find { it.id == postId } ?: return
-
-        // Simpan state asli untuk rollback jika gagal
-        val originalPost = postToUpdate.copy()
-
-        // Update secara optimis
-        val updatedPost = postToUpdate.copy(
-            likesCount = postToUpdate.likesCount + 1,
-            // isLiked tidak ada di PostEntity, tapi kita asumsikan untuk logika ini
-            // Jika Anda ingin menyimpan state 'isLiked', tambahkan properti ini ke PostEntity
-        )
-
-        // Update list di UI
-        _postListState.value = currentList.map {
-            if (it.id == postId) updatedPost else it
-        }
-
+    fun toggleLikeOnList(postId: String) {
         viewModelScope.launch {
+            // 1. Ambil postingan yang akan diubah dari state saat ini
+            val postToUpdate = _postListState.value.find { it.id == postId } ?: return@launch
+            val isCurrentlyLiked = postToUpdate.isLiked
+
             try {
-                postRepository.likePost(postId)
-                // Opsional: fetch ulang post spesifik untuk data yang 100% akurat
-                // val freshPost = postRepository.getPostById(postId)
-                // ... update list lagi dengan data freshPost
-            } catch (e: Exception) {
-                _error.value = "Gagal menyukai post."
-                // Rollback jika gagal
-                _postListState.value = currentList.map {
-                    if (it.id == postId) originalPost else it
+                // 2. Lakukan aksi ke server seperti biasa
+                if (isCurrentlyLiked) {
+                    postRepository.unlikePost(postId)
+                } else {
+                    postRepository.likePost(postId)
                 }
+
+                // 3. Buat entitas post yang BARU dengan data yang sudah diupdate
+                val updatedEntity = postToUpdate.copy(
+                    isLiked = !isCurrentlyLiked,
+                    likesCount = if (isCurrentlyLiked) postToUpdate.likesCount - 1 else postToUpdate.likesCount + 1
+                )
+
+                // 4. Simpan perubahan ini ke database lokal (INI KUNCINYA)
+                postRepository.updatePostInDb(updatedEntity)
+
+            } catch (e: Exception) {
+                _error.value = "Gagal memperbarui like: ${e.message}"
+                // Jika gagal, kita tidak perlu melakukan apa-apa. Tampilan tidak akan berubah
+                // karena kita tidak pernah mengubahnya secara manual.
             }
         }
     }

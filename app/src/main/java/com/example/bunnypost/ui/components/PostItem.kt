@@ -3,8 +3,9 @@ package com.example.bunnypost.ui.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.outlined.ThumbUp
+import androidx.compose.material.icons.filled.ChatBubble
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,9 +19,10 @@ import com.example.bunnypost.data.remote.model.Post
 fun PostItem(
     post: Post,
     onClick: () -> Unit,
-    onLikeClick: () -> Unit, // Parameter untuk aksi like
+    onLikeClick: () -> Unit,
     likesCount: Int,
-    commentsCount: Int
+    commentsCount: Int,
+    isLiked: Boolean // <-- TAMBAHKAN PARAMETER INI
 ) {
     Card(
         modifier = Modifier
@@ -46,23 +48,25 @@ fun PostItem(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Baris untuk Like yang bisa diklik
+                // --- BAGIAN INI DIUBAH TOTAL ---
                 Row(
                     modifier = Modifier.clickable { onLikeClick() }.padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.ThumbUp, // Selalu ikon outline
+                        // Gunakan ikon berbeda berdasarkan status 'isLiked'
+                        imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = "Likes",
                         modifier = Modifier.size(18.dp),
-                        tint = Color.Gray
+                        // Gunakan warna berbeda berdasarkan status 'isLiked'
+                        tint = if (isLiked) MaterialTheme.colorScheme.primary else Color.Gray
                     )
                     Text(
                         text = "$likesCount",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Gray
+                        color = if (isLiked) MaterialTheme.colorScheme.primary else Color.Gray
                     )
                 }
                 // Baris untuk Comment (tidak bisa diklik)
@@ -71,7 +75,8 @@ fun PostItem(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.ChatBubbleOutline,
+                        // Ganti ikon agar konsisten dengan gaya di detail
+                        imageVector = Icons.Filled.ChatBubble,
                         contentDescription = "Comments",
                         modifier = Modifier.size(18.dp),
                         tint = Color.Gray
