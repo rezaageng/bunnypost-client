@@ -28,17 +28,34 @@ fun MainScreen(
         bottomBar = { BottomNavigationBar(navController = bottomNavController) }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            NavHost(bottomNavController, startDestination = NavigationItem.Home.route) {
+            NavHost(
+                navController = bottomNavController,
+                startDestination = NavigationItem.Home.route
+            ) {
                 composable(NavigationItem.Home.route) {
                     HomeScreen(viewModel = postViewModel)
                 }
                 composable(NavigationItem.Search.route) {
-                    SearchScreen()
+                    SearchScreen(navController = bottomNavController)
                 }
                 composable(NavigationItem.Profile.route) {
                     ProfileScreen(onLogout = {
                         authViewModel.logout(onLogout)
                     })
+                }
+                composable("post/{id}") { backStackEntry ->
+                    val postId = backStackEntry.arguments?.getString("id") ?: ""
+                    PostDetailScreen(
+                        postId = postId,
+                        onBack = { bottomNavController.popBackStack() }
+                    )
+                }
+                composable("profile/{username}") { backStackEntry ->
+                    val username = backStackEntry.arguments?.getString("username") ?: ""
+                    ProfileDetailScreen(
+                        username = username,
+                        onBack = { bottomNavController.popBackStack() }
+                    )
                 }
             }
         }

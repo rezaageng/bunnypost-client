@@ -25,4 +25,6 @@ interface UserDao {
            OR LOWER(lastName) LIKE '%' || LOWER(:query) || '%'
     """)
     fun searchUsers(query: String): Flow<List<UserEntity>>
+
+
 }

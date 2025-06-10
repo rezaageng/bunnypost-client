@@ -14,31 +14,29 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.example.bunnypost.R
+import com.example.bunnypost.ui.viewmodel.SearchViewModel
 
 @Composable
-fun SearchScreen() {
-    var searchQuery by remember { mutableStateOf("") }
+fun SearchScreen(
+    navController: NavHostController,
+    viewModel: SearchViewModel = hiltViewModel()
+) {
     var selectedTab by remember { mutableStateOf(0) }
 
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val postResults by viewModel.searchResultsPosts.collectAsState()
+    val userResults by viewModel.searchResultsUsers.collectAsState()
+
     val tabs = listOf("Posts", "Users")
-
-    val dummyPosts = listOf(
-        Triple("userone", "User One", "Ini adalah tweet pertama"),
-        Triple("usertwo", "User Two", "Postingan kedua yang menarik perhatian.")
-    )
-
-    val dummyUsers = listOf(
-        Pair("userone", "User One"),
-        Pair("usertwo", "User Two")
-    )
 
     Column(modifier = Modifier.fillMaxSize()) {
         OutlinedTextField(
             value = searchQuery,
-            onValueChange = { searchQuery = it },
-            label = { Text("Search Twitter") },
+            onValueChange = { viewModel.onSearchQueryChanged(it) },
+            label = { Text("Search BunnyPost") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -57,15 +55,17 @@ fun SearchScreen() {
         when (selectedTab) {
             0 -> {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(dummyPosts) { (username, name, content) ->
+                    items(postResults) { post ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(12.dp)
-                                .clickable { /* navigate to Post */ }
+                                .clickable {
+                                    navController.navigate("post/${post.id}")
+                                }
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.ic_launcher_foreground), // dummy avatar
+                                painter = painterResource(id = R.drawable.ic_launcher_foreground),
                                 contentDescription = "Avatar",
                                 modifier = Modifier
                                     .size(48.dp)
@@ -74,19 +74,19 @@ fun SearchScreen() {
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        text = name,
+                                        text = "${post.authorFirstName} ${post.authorLastName}",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "@$username",
+                                        text = "@${post.authorUsername}",
                                         color = Color.Gray,
                                         fontSize = 14.sp
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(text = content)
+                                Text(text = post.content)
                             }
                         }
                         Divider()
@@ -96,12 +96,14 @@ fun SearchScreen() {
 
             1 -> {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(dummyUsers) { (username, name) ->
+                    items(userResults) { post ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(12.dp)
-                                .clickable { /* navigate to profile */ }
+                                .clickable {
+                                    navController.navigate("profile/${post.authorUsername}")
+                                }
                         ) {
                             Image(
                                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
@@ -112,12 +114,12 @@ fun SearchScreen() {
                             )
                             Column {
                                 Text(
-                                    text = name,
+                                    text = "${post.authorFirstName} ${post.authorLastName}",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp
                                 )
                                 Text(
-                                    text = "@$username",
+                                    text = "@${post.authorUsername}",
                                     color = Color.Gray,
                                     fontSize = 14.sp
                                 )
@@ -125,8 +127,6 @@ fun SearchScreen() {
                         }
                         Divider()
                     }
+
                 }
-            }
-        }
-    }
-}
+            }}}}
