@@ -2,6 +2,7 @@ package com.example.bunnypost.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -14,42 +15,42 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.bunnypost.data.remote.model.Post
 
-import androidx.compose.material.icons.filled.Chat
-
-
-
-
-
-
 @Composable
 fun PostItem(post: Post) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            // Nama lengkap + username (seperti header tweet)
             Text(
-                text = post.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                text = "${post.author.firstName} ${post.author.lastName}",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold
             )
-            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "by ${post.author.username}",
+                text = "@${post.author.username}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = post.content, style = MaterialTheme.typography.bodyMedium)
 
-            Spacer(modifier = Modifier.height(12.dp)) // Tambahan agar ada jarak
+            // Konten tweet
+            Text(
+                text = post.content,
+                style = MaterialTheme.typography.bodyLarge
+            )
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Like & Comment bar
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Filled.Favorite,
                     contentDescription = "Like",
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(text = "${post.likes.size}")
@@ -59,7 +60,7 @@ fun PostItem(post: Post) {
                 Icon(
                     imageVector = Icons.Filled.Chat,
                     contentDescription = "Comment",
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(text = "${post.comments.size}")
