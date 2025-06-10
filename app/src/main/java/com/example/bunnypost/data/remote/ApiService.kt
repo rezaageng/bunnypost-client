@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/bunnypost/data/remote/ApiService.kt
 package com.example.bunnypost.data.remote
 
 import com.example.bunnypost.data.remote.model.LoginResponse
@@ -30,6 +31,11 @@ interface ApiService {
         @Query("page") page: Int,
         @Query("limit") limit: Int
     ): PostsResponse
+
+    @GET("users/me") // Tambahkan ini: Endpoint untuk mendapatkan profil pengguna yang saat ini login
+    suspend fun getMyProfile(
+        @Header("Authorization") token: String
+    ): UserResponse
 
     @FormUrlEncoded // Pastikan ini jika API Anda mengharapkan form-encoded data
     @PATCH("users/me") // Endpoint untuk memperbarui profil

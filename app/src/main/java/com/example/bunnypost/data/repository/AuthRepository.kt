@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/bunnypost/data/repository/AuthRepository.kt
 package com.example.bunnypost.data.repository
 
 import android.util.Log
@@ -17,6 +18,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+// Import ini untuk firstOrNull() pada Flow
+import kotlinx.coroutines.flow.firstOrNull // Pastikan ini diimpor jika diperlukan untuk skenario tertentu
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
@@ -87,10 +90,9 @@ class AuthRepository @Inject constructor(
             Log.e("AuthRepository", "Error fetching profile: ${e.message}", e)
             // Coba memuat dari database lokal jika jaringan gagal atau error lainnya
             val localUser = withContext(Dispatchers.IO) {
-                // Asumsi userDao.getAllUsers() mengembalikan Flow<List<UserEntity>>
-                // dan kita mengambil yang pertama.
-                // Ini berfungsi jika aplikasi Anda hanya menyimpan satu pengguna per waktu.
-                userDao.getAllUsers().firstOrNull() // Memanggil firstOrNull() pada Flow
+                // Mengambil item pertama yang dipancarkan oleh Flow (yang merupakan List<UserEntity>),
+                // kemudian mengambil elemen pertama dari List tersebut.
+                userDao.getAllUsers().first().firstOrNull() // Perbaikan di sini
             }
             if (localUser != null) {
                 emit(Result.Success(localUser))

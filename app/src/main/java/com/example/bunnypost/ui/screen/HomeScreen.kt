@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/bunnypost/ui/screen/HomeScreen.kt
 package com.example.bunnypost.ui.screen
 
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import com.example.bunnypost.data.remote.model.Author
 import com.example.bunnypost.data.remote.model.Post
 import com.example.bunnypost.ui.components.PostItem
 import com.example.bunnypost.viewmodel.PostViewModel
+import java.time.Instant // Import ini
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -48,11 +50,13 @@ fun HomeScreen(viewModel: PostViewModel) {
                         id = postEntity.id,
                         title = postEntity.title,
                         content = postEntity.content,
-                        createdAt = postEntity.createdAt,
-                        updatedAt = "",
-                        authorId = postEntity.authorId,
+                        // Perbaikan di sini: gunakan timestamp dari PostEntity dan konversi ke String
+                        createdAt = Instant.ofEpochMilli(postEntity.timestamp).toString(),
+                        updatedAt = "", // Anda mungkin perlu mengatur ini berdasarkan kebutuhan API Anda
+                        // Perbaikan di sini: gunakan userId dari PostEntity
+                        authorId = postEntity.userId,
                         author = Author(
-                            id = postEntity.authorId,
+                            id = postEntity.userId, // Perbaikan di sini
                             username = postEntity.authorUsername,
                             firstName = postEntity.authorFirstName,
                             lastName = postEntity.authorLastName
