@@ -17,7 +17,11 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "us
 @Singleton
 class UserPreferences @Inject constructor(@ApplicationContext private val context: Context) {
 
+    // Kunci untuk menyimpan token otentikasi
     private val userTokenKey = stringPreferencesKey("user_token")
+
+    // DITAMBAHKAN: Kunci baru untuk menyimpan ID pengguna
+    private val userIdKey = stringPreferencesKey("user_id")
 
     suspend fun saveUserToken(token: String) {
         context.dataStore.edit { preferences ->
@@ -31,9 +35,25 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
         }
     }
 
-    suspend fun clearUserToken() {
+    // DITAMBAHKAN: Fungsi untuk menyimpan ID pengguna
+    suspend fun saveUserId(userId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[userIdKey] = userId
+        }
+    }
+
+    // DITAMBAHKAN: Fungsi untuk mengambil ID pengguna
+    fun getUserId(): Flow<String?> {
+        return context.dataStore.data.map { preferences ->
+            preferences[userIdKey]
+        }
+    }
+
+    // DIPERBARUI: Fungsi clear untuk menghapus semua data user saat logout
+    suspend fun clearUserData() {
         context.dataStore.edit { preferences ->
             preferences.remove(userTokenKey)
+            preferences.remove(userIdKey) // Juga hapus userId
         }
     }
 }

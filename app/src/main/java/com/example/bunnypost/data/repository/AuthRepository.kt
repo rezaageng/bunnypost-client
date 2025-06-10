@@ -20,6 +20,8 @@ class AuthRepository @Inject constructor(
             val response = apiService.login(LoginRequest(email, password).toMap())
             if (response.success) {
                 userPreferences.saveUserToken(response.token)
+                // Jangan lupa untuk menyimpan userId juga setelah login
+                // userPreferences.saveUserId(response.user.id) // Anda perlu menyesuaikan ini dengan respons login Anda
                 emit(Result.Success(response.token))
             } else {
                 throw Exception(response.message)
@@ -35,6 +37,8 @@ class AuthRepository @Inject constructor(
             val response = apiService.signup(SignUpRequest(email, password, username, firstName, lastName).toMap())
             if (response.success) {
                 userPreferences.saveUserToken(response.token)
+                // Jangan lupa untuk menyimpan userId juga setelah sign up
+                // userPreferences.saveUserId(response.user.id) // Anda perlu menyesuaikan ini dengan respons sign up Anda
                 emit(Result.Success(response.token))
             } else {
                 throw Exception(response.message)
@@ -46,7 +50,8 @@ class AuthRepository @Inject constructor(
 
 
     suspend fun logout() {
-        userPreferences.clearUserToken()
+        // DIUBAH: dari clearUserToken() menjadi clearUserData()
+        userPreferences.clearUserData()
     }
 
     suspend fun isLoggedIn(): Boolean {
