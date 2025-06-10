@@ -27,15 +27,17 @@ class AuthRepository @Inject constructor(
                 // Langkah 2: Panggil /users/me untuk mendapatkan data pengguna
                 val meResponse = apiService.getMe("Bearer $token")
                 if (meResponse.success) {
-                    // Langkah 3: Simpan userId dari respons /me
+                    // Langkah 3: Simpan userId dan username dari respons /me
                     val userId = meResponse.data.id
+                    val username = meResponse.data.username // Ambil username
                     userPreferences.saveUserId(userId)
+                    userPreferences.saveUsername(username) // Simpan username
                 } else {
                     // Jika gagal mengambil data 'me', anggap saja sebagai error
                     throw Exception(meResponse.message)
                 }
 
-                // Kirim sinyal sukses setelah semua data (token & userId) tersimpan
+                // Kirim sinyal sukses setelah semua data (token, userId, & username) tersimpan
                 emit(Result.Success(token))
             } else {
                 throw Exception(loginResponse.message)
@@ -58,15 +60,17 @@ class AuthRepository @Inject constructor(
                 // Langkah 2: Panggil endpoint /users/me menggunakan token baru
                 val meResponse = apiService.getMe("Bearer $token")
                 if (meResponse.success) {
-                    // Langkah 3: Simpan userId yang didapat dari /users/me
+                    // Langkah 3: Simpan userId dan username yang didapat dari /users/me
                     val userId = meResponse.data.id
+                    val registeredUsername = meResponse.data.username // Ambil username
                     userPreferences.saveUserId(userId)
+                    userPreferences.saveUsername(registeredUsername) // Simpan username
                 } else {
                     // Jika gagal mengambil data 'me', anggap sebagai error
                     throw Exception(meResponse.message)
                 }
 
-                // Kirim sinyal sukses setelah semua data (token & userId) tersimpan
+                // Kirim sinyal sukses setelah semua data (token, userId, & username) tersimpan
                 emit(Result.Success(token))
             } else {
                 throw Exception(signupResponse.message)
@@ -77,7 +81,6 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun logout() {
-        // DIUBAH: dari clearUserToken() menjadi clearUserData()
         userPreferences.clearUserData()
     }
 

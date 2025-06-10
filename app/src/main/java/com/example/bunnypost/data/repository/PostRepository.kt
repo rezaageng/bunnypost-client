@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class PostRepository @Inject constructor(
@@ -40,7 +39,6 @@ class PostRepository @Inject constructor(
         }
     }
 
-    // --- FUNGSI INI DIUBAH LOGIKANYA ---
     suspend fun likePost(postId: String) {
         val token = userPreferences.getToken().first() ?: throw Exception("User not logged in")
         apiService.likePost("Bearer $token", postId)
@@ -68,11 +66,9 @@ class PostRepository @Inject constructor(
         apiService.addComment("Bearer $token", postId, content)
     }
 
-    // fetchPosts dikembalikan ke versi yang lebih sederhana tanpa 'isLiked'
     suspend fun fetchPosts(page: Int): PostsResponse {
         val token = userPreferences.getToken().first() ?: throw Exception("User not logged in")
 
-        // --> TAMBAHKAN INI: Ambil ID pengguna saat ini
         val userId = userPreferences.getUserId().firstOrNull()
 
         val response = apiService.getPosts(
@@ -84,7 +80,6 @@ class PostRepository @Inject constructor(
 
         if (response.success) {
             val postEntities = response.data.map { post ->
-                // --> UBAH DI SINI: tambahkan logika untuk 'isLiked'
                 val isLikedByUser =
                     userId?.let { uId -> post.likes.any { it.authorId == uId } } ?: false
 
@@ -97,9 +92,10 @@ class PostRepository @Inject constructor(
                     authorUsername = post.author.username,
                     authorFirstName = post.author.firstName,
                     authorLastName = post.author.lastName,
+                    profilePicture = post.author.profilePicture, // Tambahkan baris ini
                     likesCount = post.likes.size,
                     commentsCount = post.comments.size,
-                    isLiked = isLikedByUser // <-- SET NILAI isLiked DI SINI
+                    isLiked = isLikedByUser
                 )
             }
             withContext(Dispatchers.IO) {

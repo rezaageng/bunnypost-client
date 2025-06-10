@@ -16,7 +16,8 @@ data class Author(
     val id: String,
     val username: String,
     val firstName: String,
-    val lastName: String
+    val lastName: String,
+    val profilePicture: String? = null // Add this line
 )
 
 data class Comment(
