@@ -96,17 +96,49 @@ class PostViewModel @Inject constructor(
     }
 
     fun submitPost() {
+        // Simpan title dan content sebelum di-reset
+        val postTitle = title
+        val postContent = content
+
+        if (postTitle.isBlank() || postContent.isBlank()) return
+
+        // Buat ID sementara untuk post optimistis
+        val optimisticPostId = "temp_${System.currentTimeMillis()}"
+
+        // Buat entitas sementara
+        // Anda mungkin perlu mengambil data author dari UserPreferences
+        val optimisticPost = PostEntity(
+            id = optimisticPostId,
+            title = postTitle,
+            content = postContent,
+            createdAt = "...", // Placeholder
+            authorId = "current_user_id", // Placeholder, perlu data user
+            authorUsername = "current_user", // Placeholder
+            authorFirstName = "Current", // Placeholder
+            authorLastName = "User", // Placeholder
+            likesCount = 0,
+            commentsCount = 0,
+            isLiked = false
+        )
+
+        // Langsung tambahkan ke state list di posisi paling atas
+        _postListState.value = listOf(optimisticPost) + _postListState.value
+
+        // Reset field input
+        title = ""
+        content = ""
+
         viewModelScope.launch {
-            _isLoading.value = true
             _error.value = null
             try {
-                postRepository.createPost(title, content)
-                title = ""
-                content = ""
+                // Panggil repository untuk membuat post di server
+                postRepository.createPost(postTitle, postContent)
+                // Setelah berhasil, refresh seluruh list untuk mendapatkan data asli
+                refreshPosts()
             } catch (e: Exception) {
-                _error.value = e.message
-            } finally {
-                _isLoading.value = false
+                _error.value = "Gagal memposting: ${e.message}"
+                // Jika gagal, hapus post sementara dari list
+                _postListState.value = _postListState.value.filter { it.id != optimisticPostId }
             }
         }
     }
@@ -126,56 +158,106 @@ class PostViewModel @Inject constructor(
     }
 
     fun likePostDetail(postId: String) {
+        val currentPostDetail = _postDetail.value ?: return
+        val originalPostDetail = currentPostDetail.copy()
+
+        // Asumsikan kita tahu user ID saat ini
+        val currentUserId = "current_user_id" // Perlu diambil dari UserPreferences
+        val isAlreadyLiked = currentPostDetail.likes.any { it.authorId == currentUserId }
+
+        // Update secara optimis
+        val newLikes = if (isAlreadyLiked) {
+            currentPostDetail.likes.filter { it.authorId != currentUserId }
+        } else {
+            // Buat data Like sementara
+            currentPostDetail.likes + com.example.bunnypost.data.remote.model.Like(
+                "temp_like",
+                currentUserId
+            )
+        }
+
+        _postDetail.value = currentPostDetail.copy(likes = newLikes)
+        // Update juga state isLikedByCurrentUser
+        // _isLikedByCurrentUser.value = !isAlreadyLiked
+
         viewModelScope.launch {
             try {
                 postRepository.likePost(postId)
+                // Refresh data detail untuk sinkronisasi
                 getPostDetail(postId)
             } catch (e: Exception) {
-                _error.value = e.message
+                _error.value = "Gagal menyukai post."
+                // Rollback
+                _postDetail.value = originalPostDetail
             }
         }
     }
 
     fun likePostFromList(postId: String) {
+        val currentList = _postListState.value
+        val postToUpdate = currentList.find { it.id == postId } ?: return
+
+        // Simpan state asli untuk rollback jika gagal
+        val originalPost = postToUpdate.copy()
+
+        // Update secara optimis
+        val updatedPost = postToUpdate.copy(
+            likesCount = postToUpdate.likesCount + 1,
+            // isLiked tidak ada di PostEntity, tapi kita asumsikan untuk logika ini
+            // Jika Anda ingin menyimpan state 'isLiked', tambahkan properti ini ke PostEntity
+        )
+
+        // Update list di UI
+        _postListState.value = currentList.map {
+            if (it.id == postId) updatedPost else it
+        }
+
         viewModelScope.launch {
             try {
                 postRepository.likePost(postId)
-
-                // Ambil data post baru dari server
-                val updatedPost = postRepository.getPostById(postId)
-
-                // Konversi ke PostEntity
-                val updatedEntity = PostEntity(
-                    id = updatedPost.id,
-                    title = updatedPost.title,
-                    content = updatedPost.content,
-                    createdAt = updatedPost.createdAt,
-                    authorId = updatedPost.author.id,
-                    authorUsername = updatedPost.author.username,
-                    authorFirstName = updatedPost.author.firstName,
-                    authorLastName = updatedPost.author.lastName,
-                    likesCount = updatedPost.likes.size,
-                    commentsCount = updatedPost.comments.size
-                )
-
-                // Update hanya di memori (_postListState)
-                _postListState.value = _postListState.value.map {
-                    if (it.id == postId) updatedEntity else it
-                }
-
+                // Opsional: fetch ulang post spesifik untuk data yang 100% akurat
+                // val freshPost = postRepository.getPostById(postId)
+                // ... update list lagi dengan data freshPost
             } catch (e: Exception) {
-                _error.value = e.message
+                _error.value = "Gagal menyukai post."
+                // Rollback jika gagal
+                _postListState.value = currentList.map {
+                    if (it.id == postId) originalPost else it
+                }
             }
         }
     }
 
     fun addComment(postId: String, content: String) {
+        if (content.isBlank()) return
+
+        val currentPost = _postDetail.value ?: return
+
+        // Buat komentar sementara
+        val optimisticCommentId = "temp_comment_${System.currentTimeMillis()}"
+        val optimisticComment = com.example.bunnypost.data.remote.model.Comment(
+            id = optimisticCommentId,
+            content = content,
+            createdAt = "...", // Placeholder
+            authorId = "current_user_id" // Placeholder, perlu data user
+        )
+
+        // Update UI secara optimis
+        _postDetail.value = currentPost.copy(
+            comments = currentPost.comments + optimisticComment
+        )
+
         viewModelScope.launch {
             try {
                 postRepository.addComment(postId, content)
+                // Refresh detail post untuk mendapatkan data asli
                 getPostDetail(postId)
             } catch (e: Exception) {
-                _error.value = e.message
+                _error.value = "Gagal menambahkan komentar."
+                // Rollback jika gagal
+                _postDetail.value = currentPost.copy(
+                    comments = currentPost.comments.filter { it.id != optimisticCommentId }
+                )
             }
         }
     }
