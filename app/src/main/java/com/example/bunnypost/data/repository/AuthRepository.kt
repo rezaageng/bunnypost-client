@@ -1,4 +1,3 @@
-// app/src/main/java/com/example/bunnypost/data/repository/AuthRepository.kt
 package com.example.bunnypost.data.repository
 
 import android.util.Log
@@ -18,8 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-// Import ini untuk firstOrNull() pada Flow
-import kotlinx.coroutines.flow.firstOrNull // Pastikan ini diimpor jika diperlukan untuk skenario tertentu
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
@@ -34,7 +32,6 @@ class AuthRepository @Inject constructor(
             if (response.success) {
                 emit(Result.Success(response.token))
             } else {
-                // Pastikan pesan error selalu tersedia
                 emit(Result.Error(response.message ?: "Login failed. Unknown message."))
             }
         } catch (e: Exception) {
@@ -59,7 +56,7 @@ class AuthRepository @Inject constructor(
         emit(Result.Loading)
         try {
             val token = userPreferences.getToken().first()
-            if (token.isNullOrEmpty()) { // Gunakan isNullOrEmpty untuk memastikan token valid
+            if (token.isNullOrEmpty()) {
                 emit(Result.Error("User not logged in or token is missing."))
                 return@flow
             }
@@ -88,11 +85,8 @@ class AuthRepository @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e("AuthRepository", "Error fetching profile: ${e.message}", e)
-            // Coba memuat dari database lokal jika jaringan gagal atau error lainnya
             val localUser = withContext(Dispatchers.IO) {
-                // Mengambil item pertama yang dipancarkan oleh Flow (yang merupakan List<UserEntity>),
-                // kemudian mengambil elemen pertama dari List tersebut.
-                userDao.getAllUsers().first().firstOrNull() // Perbaikan di sini
+                userDao.getAllUsers().first().firstOrNull()
             }
             if (localUser != null) {
                 emit(Result.Success(localUser))
@@ -133,7 +127,7 @@ class AuthRepository @Inject constructor(
         emit(Result.Loading)
         try {
             val token = userPreferences.getToken().first()
-            if (token.isNullOrEmpty()) { // Gunakan isNullOrEmpty untuk memastikan token valid
+            if (token.isNullOrEmpty()) {
                 emit(Result.Error("User not logged in or token is missing for update."))
                 return@flow
             }
@@ -153,7 +147,7 @@ class AuthRepository @Inject constructor(
                         bio = userData.bio
                     )
                     withContext(Dispatchers.IO) {
-                        userDao.insertUser(updatedUserEntity) // Perbarui di DB lokal
+                        userDao.insertUser(updatedUserEntity)
                     }
                     emit(Result.Success(updatedUserEntity))
                 } ?: run {

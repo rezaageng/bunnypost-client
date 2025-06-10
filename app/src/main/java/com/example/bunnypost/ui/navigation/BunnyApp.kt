@@ -10,7 +10,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.bunnypost.ui.screen.* // Import semua screen yang diperlukan
+import com.example.bunnypost.ui.screen.*
 import com.example.bunnypost.viewmodel.AuthViewModel
 import com.example.bunnypost.viewmodel.ProfileViewModel
 import androidx.compose.runtime.collectAsState
@@ -22,49 +22,26 @@ fun BunnyApp() {
     val authViewModel: AuthViewModel = hiltViewModel()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
-    // Mendapatkan AuthViewModel di sini untuk digunakan di LaunchEffect
-    // Ini memastikan bahwa AuthViewModel tersedia untuk memeriksa status login
-    // dan menangani event logout global.
-
-    // Listen for global logout events (memerlukan SessionManager di AuthViewModel atau serupa)
-    // Jika authViewModel.sessionManager tidak ada, bagian ini perlu disesuaikan
-    LaunchedEffect(Unit) {
-        // Asumsi: authViewModel memiliki mekanisme untuk memancarkan logout event
-        // Jika Anda belum memiliki sessionManager atau logoutEvent, bagian ini mungkin perlu disesuaikan
-        // atau dihapus jika tidak ada event logout global yang perlu didengarkan di sini.
-        // authViewModel.sessionManager.logoutEvent.collect {
-        //     navController.navigate("login") {
-        //         popUpTo(navController.graph.findStartDestination().id) {
-        //             inclusive = true
-        //         }
-        //         launchSingleTop = true
-        //     }
-        // }
-    }
-
-    // Tangani navigasi berdasarkan status login awal
     LaunchedEffect(isLoggedIn) {
         when (isLoggedIn) {
-            true -> navController.navigate("main") { // Navigasi ke main jika sudah login
-                popUpTo("login") { inclusive = true } // Hapus login dari back stack
-                popUpTo("splash") { inclusive = true } // Hapus splash jika ada
+            true -> navController.navigate("main") {
+                popUpTo("login") { inclusive = true }
+                popUpTo("splash") { inclusive = true }
             }
-            false -> navController.navigate("login") { // Navigasi ke login jika belum login
-                popUpTo("profile") { inclusive = true } // Hapus profile jika ada (dari sesi sebelumnya)
-                popUpTo("main") { inclusive = true } // Hapus main jika ada (dari sesi sebelumnya)
-                popUpTo("splash") { inclusive = true } // Hapus splash jika ada
+            false -> navController.navigate("login") {
+                popUpTo("profile") { inclusive = true }
+                popUpTo("main") { inclusive = true }
+                popUpTo("splash") { inclusive = true }
             }
             null -> {
-                // Masih memeriksa status login, mungkin tetap di splash screen atau tampilkan loading
-                // Tidak melakukan navigasi apa pun sampai status diketahui
+                // Masih memeriksa status login
             }
         }
     }
 
-
     NavHost(
         navController = navController,
-        startDestination = "splash", // Ubah startDestination ke splash screen
+        startDestination = "splash",
         modifier = Modifier.background(MaterialTheme.colorScheme.background)
     ) {
         composable("splash") {
@@ -90,7 +67,6 @@ fun BunnyApp() {
                         popUpTo("login") { inclusive = true }
                     }
                 },
-                // Meneruskan lambda untuk parameter 'signUp'
                 signUp = {
                     navController.navigate("signup")
                 }
@@ -115,27 +91,44 @@ fun BunnyApp() {
             MainScreen(
                 authViewModel = authViewModel,
                 onLogout = {
-                    // Panggil logout dari AuthViewModel, teruskan navigasi sebagai callback
                     authViewModel.logout {
                         navController.navigate("login") {
                             popUpTo("main") { inclusive = true }
                         }
                     }
+                },
+                onEditProfileClick = { // Tambahkan parameter ini
+                    navController.navigate("editProfile")
                 }
             )
         }
-        composable("profile") { // Ini rute untuk ProfileScreen jika diakses langsung (misal dari MainScreen internal)
+        composable("profile") {
             val profileViewModel: ProfileViewModel = hiltViewModel()
             ProfileScreen(
                 profileViewModel = profileViewModel,
                 onLogout = {
-                    // Panggil logout dari AuthViewModel, teruskan navigasi sebagai callback
                     authViewModel.logout {
-                        navController.navigate("login") { // Navigate to login on logout
+                        navController.navigate("login") {
                             popUpTo("profile") { inclusive = true }
-                            popUpTo("main") { inclusive = true } // Tambahkan ini jika ProfileScreen diakses dari MainScreen
+                            popUpTo("main") { inclusive = true }
                         }
                     }
+                },
+                onEditProfileClick = {
+                    navController.navigate("editProfile")
+                }
+            )
+        }
+        composable("editProfile") {
+            val profileViewModel: ProfileViewModel = hiltViewModel()
+            EditProfileScreen(
+                authViewModel = authViewModel,
+                profileViewModel = profileViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onProfileUpdated = {
+                    navController.popBackStack()
                 }
             )
         }

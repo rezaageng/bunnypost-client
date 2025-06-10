@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.bunnypost.data.helper.Result
+import com.example.bunnypost.data.local.entity.UserEntity
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
@@ -23,9 +24,11 @@ class AuthViewModel @Inject constructor(
     private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
     val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
 
-    // Tambahkan StateFlow untuk status pendaftaran
     private val _signUpState = MutableStateFlow<Result<String>?>(null)
     val signUpState: StateFlow<Result<String>?> = _signUpState.asStateFlow()
+
+    private val _editProfileState = MutableStateFlow<Result<UserEntity>?>(null)
+    val editProfileState: StateFlow<Result<UserEntity>?> = _editProfileState.asStateFlow()
 
     init {
         checkLoginStatus()
@@ -54,12 +57,12 @@ class AuthViewModel @Inject constructor(
             authRepository.logout()
             _isLoggedIn.value = false
             _loginState.value = null
-            _signUpState.value = null // Clear sign up state on logout
+            _signUpState.value = null
+            _editProfileState.value = null
             onLogoutFinished()
         }
     }
 
-    // Fungsi signup yang diperbaiki
     fun signup(
         email: String,
         password: String,
@@ -69,16 +72,29 @@ class AuthViewModel @Inject constructor(
     ) {
         Log.d("AuthViewModel", "Signup called for email: $email, username: $username")
         viewModelScope.launch {
-            // Atur status loading
             _signUpState.value = Result.Loading
-            // Kumpulkan (collect) hasil dari flow authRepository.signup
             authRepository.signup(email, password, username, firstName, lastName).collect { result ->
-                _signUpState.value = result // Tetapkan hasil yang dikumpulkan
-                if (result is Result.Success) { // Sekarang ini adalah Result.Success<String>
-                    // Opsional: lakukan sesuatu setelah signup berhasil, misalnya otomatis login
-                    // atau clear form.
-                }
+                _signUpState.value = result
             }
         }
+    }
+
+    fun updateProfile(
+        firstName: String,
+        lastName: String,
+        username: String,
+        bio: String?
+    ) {
+        Log.d("AuthViewModel", "Update profile called for username: $username")
+        viewModelScope.launch {
+            _editProfileState.value = Result.Loading
+            authRepository.updateProfile(firstName, lastName, username, bio).collect { result ->
+                _editProfileState.value = result
+            }
+        }
+    }
+
+    fun resetEditProfileState() {
+        _editProfileState.value = null
     }
 }

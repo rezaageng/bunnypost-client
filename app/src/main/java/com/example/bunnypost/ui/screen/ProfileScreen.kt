@@ -27,7 +27,8 @@ import androidx.compose.foundation.lazy.items
 @Composable
 fun ProfileScreen(
     profileViewModel: ProfileViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onEditProfileClick: () -> Unit
 ) {
     val profileState by profileViewModel.profileState.collectAsState()
 
@@ -93,7 +94,6 @@ fun ProfileScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Tambahkan Bio di sini
                 if (!user.bio.isNullOrEmpty()) {
                     Text(
                         text = user.bio,
@@ -102,18 +102,16 @@ fun ProfileScreen(
                     )
                 } else {
                     Text(
-                        text = "No bio available.", // Teks placeholder jika bio kosong
+                        text = "No bio available.",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp)) // Spacer setelah bio atau placeholder
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = {
-                        println("Edit Profile Clicked!")
-                    },
+                    onClick = onEditProfileClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
@@ -190,6 +188,8 @@ fun ProfileScreen(
 fun UserPostsList(profileViewModel: ProfileViewModel) {
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text("Posts by this user will appear here.")
+        // Anda dapat mengganti LazyColumn ini dengan data posts sebenarnya dari ViewModel
+        // untuk pengguna yang sedang login. Ini adalah placeholder.
         LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
             items(5) { index ->
                 Card(
@@ -211,6 +211,8 @@ fun UserPostsList(profileViewModel: ProfileViewModel) {
 fun UserLikesList(profileViewModel: ProfileViewModel) {
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text("Liked posts will appear here.")
+        // Anda dapat mengganti LazyColumn ini dengan data posts yang disukai oleh pengguna
+        // yang sedang login. Ini adalah placeholder.
         LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
             items(3) { index ->
                 Card(

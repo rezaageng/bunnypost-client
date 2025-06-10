@@ -1,4 +1,3 @@
-// app/src/main/java/com/example/bunnypost/data/repository/PostRepository.kt
 package com.example.bunnypost.data.repository
 
 import com.example.bunnypost.data.local.UserPreferences
@@ -10,7 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.time.Instant // Import ini
+import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.inject.Inject
 
 class PostRepository @Inject constructor(
@@ -37,9 +38,8 @@ class PostRepository @Inject constructor(
                     id = post.id,
                     title = post.title,
                     content = post.content,
-                    // Konversi createdAt (String) ke timestamp (Long)
-                    timestamp = Instant.parse(post.createdAt).toEpochMilli(), // Perbaikan di sini
-                    userId = post.author.id, // Diubah dari authorId
+                    timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).parse(post.createdAt)?.time ?: 0L,
+                    userId = post.author.id,
                     authorUsername = post.author.username,
                     authorFirstName = post.author.firstName,
                     authorLastName = post.author.lastName
@@ -47,7 +47,7 @@ class PostRepository @Inject constructor(
             }
             withContext(Dispatchers.IO) {
                 if (page == 1) {
-                    postDao.deleteAllPosts() // Mengubah nama agar lebih konsisten
+                    postDao.deleteAllPosts()
                 }
                 postDao.insertPosts(newEntities)
             }

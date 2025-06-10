@@ -1,4 +1,3 @@
-// app/src/main/java/com/example/bunnypost/data/remote/ApiService.kt
 package com.example.bunnypost.data.remote
 
 import com.example.bunnypost.data.remote.model.LoginResponse
@@ -8,11 +7,11 @@ import com.example.bunnypost.data.remote.model.UserResponse
 import retrofit2.http.*
 import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
-import retrofit2.http.GET // Import GET
-import retrofit2.http.Header // Import Header
+import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.PATCH // Import PATCH
-import com.example.bunnypost.data.remote.model.EditProfileRequest // Import EditProfileRequest
+import retrofit2.http.PATCH
+import com.example.bunnypost.data.remote.model.EditProfileRequest
 
 
 interface ApiService {
@@ -32,15 +31,15 @@ interface ApiService {
         @Query("limit") limit: Int
     ): PostsResponse
 
-    @GET("users/me") // Tambahkan ini: Endpoint untuk mendapatkan profil pengguna yang saat ini login
+    @GET("users/me")
     suspend fun getMyProfile(
         @Header("Authorization") token: String
     ): UserResponse
 
-    @FormUrlEncoded // Pastikan ini jika API Anda mengharapkan form-encoded data
-    @PATCH("users/me") // Endpoint untuk memperbarui profil
+    @FormUrlEncoded
+    @PATCH("users/me")
     suspend fun updateMyProfile(
         @Header("Authorization") token: String,
         @FieldMap params: Map<String, String>
-    ): UserResponse // Asumsi responsnya sama dengan getMyProfile atau memiliki objek UserResponse
+    ): UserResponse
 }

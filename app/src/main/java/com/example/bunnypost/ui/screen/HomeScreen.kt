@@ -1,4 +1,3 @@
-// app/src/main/java/com/example/bunnypost/ui/screen/HomeScreen.kt
 package com.example.bunnypost.ui.screen
 
 import androidx.compose.foundation.layout.Box
@@ -22,10 +21,9 @@ import com.example.bunnypost.data.remote.model.Author
 import com.example.bunnypost.data.remote.model.Post
 import com.example.bunnypost.ui.components.PostItem
 import com.example.bunnypost.viewmodel.PostViewModel
-// import java.time.Instant // Hapus atau komen baris ini
-import java.util.Date // Tambahkan import ini
-import java.text.SimpleDateFormat // Tambahkan import ini
-import java.util.Locale // Tambahkan import ini untuk Locale
+import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -49,8 +47,6 @@ fun HomeScreen(viewModel: PostViewModel) {
         if (posts.isNotEmpty()) {
             LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
                 items(posts, key = { it.id }) { postEntity ->
-                    // Definisikan SimpleDateFormat di luar scope Composable atau gunakan remember
-                    // agar tidak dibuat ulang setiap rekomposisi.
                     val dateFormatter = remember {
                         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
                     }
@@ -58,9 +54,8 @@ fun HomeScreen(viewModel: PostViewModel) {
                         id = postEntity.id,
                         title = postEntity.title,
                         content = postEntity.content,
-                        // Perbaikan di sini: gunakan SimpleDateFormat
                         createdAt = dateFormatter.format(Date(postEntity.timestamp)),
-                        updatedAt = "", // Anda mungkin perlu mengatur ini berdasarkan kebutuhan API Anda
+                        updatedAt = "",
                         authorId = postEntity.userId,
                         author = Author(
                             id = postEntity.userId,

@@ -14,13 +14,14 @@ import com.example.bunnypost.ui.navigation.BottomNavigationBar
 import com.example.bunnypost.ui.navigation.NavigationItem
 import com.example.bunnypost.viewmodel.AuthViewModel
 import com.example.bunnypost.viewmodel.PostViewModel
-import com.example.bunnypost.viewmodel.ProfileViewModel // Import ProfileViewModel
+import com.example.bunnypost.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     authViewModel: AuthViewModel,
-    onLogout: () -> Unit // Ini adalah callback untuk navigasi utama (misal: ke LoginScreen)
+    onLogout: () -> Unit,
+    onEditProfileClick: () -> Unit // Tambahkan parameter ini
 ) {
     val bottomNavController = rememberNavController()
     val postViewModel: PostViewModel = hiltViewModel()
@@ -40,13 +41,12 @@ fun MainScreen(
                     val profileViewModel: ProfileViewModel = hiltViewModel()
                     ProfileScreen(
                         profileViewModel = profileViewModel,
-                        onLogout = { // Ini adalah callback dari ProfileScreen
-                            // Panggil logout dari AuthViewModel, dan teruskan onLogout dari MainScreen
-                            // sebagai callback setelah logout selesai.
+                        onLogout = {
                             authViewModel.logout {
                                 onLogout()
                             }
-                        }
+                        },
+                        onEditProfileClick = onEditProfileClick // Teruskan parameter ini
                     )
                 }
             }
