@@ -22,7 +22,10 @@ import com.example.bunnypost.data.remote.model.Author
 import com.example.bunnypost.data.remote.model.Post
 import com.example.bunnypost.ui.components.PostItem
 import com.example.bunnypost.viewmodel.PostViewModel
-import java.time.Instant // Import ini
+// import java.time.Instant // Hapus atau komen baris ini
+import java.util.Date // Tambahkan import ini
+import java.text.SimpleDateFormat // Tambahkan import ini
+import java.util.Locale // Tambahkan import ini untuk Locale
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -46,17 +49,21 @@ fun HomeScreen(viewModel: PostViewModel) {
         if (posts.isNotEmpty()) {
             LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
                 items(posts, key = { it.id }) { postEntity ->
+                    // Definisikan SimpleDateFormat di luar scope Composable atau gunakan remember
+                    // agar tidak dibuat ulang setiap rekomposisi.
+                    val dateFormatter = remember {
+                        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                    }
                     val post = Post(
                         id = postEntity.id,
                         title = postEntity.title,
                         content = postEntity.content,
-                        // Perbaikan di sini: gunakan timestamp dari PostEntity dan konversi ke String
-                        createdAt = Instant.ofEpochMilli(postEntity.timestamp).toString(),
+                        // Perbaikan di sini: gunakan SimpleDateFormat
+                        createdAt = dateFormatter.format(Date(postEntity.timestamp)),
                         updatedAt = "", // Anda mungkin perlu mengatur ini berdasarkan kebutuhan API Anda
-                        // Perbaikan di sini: gunakan userId dari PostEntity
                         authorId = postEntity.userId,
                         author = Author(
-                            id = postEntity.userId, // Perbaikan di sini
+                            id = postEntity.userId,
                             username = postEntity.authorUsername,
                             firstName = postEntity.authorFirstName,
                             lastName = postEntity.authorLastName
@@ -80,7 +87,6 @@ fun HomeScreen(viewModel: PostViewModel) {
                 }
             }
 
-            // Derived state to trigger pagination
             val isScrolledToEnd by remember {
                 derivedStateOf {
                     val layoutInfo = listState.layoutInfo
