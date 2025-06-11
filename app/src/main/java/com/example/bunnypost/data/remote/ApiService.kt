@@ -6,6 +6,7 @@ import com.example.bunnypost.data.remote.model.Post
 import com.example.bunnypost.data.remote.model.PostDetailResponse
 import com.example.bunnypost.data.remote.model.PostsResponse
 import com.example.bunnypost.data.remote.model.SignUpResponse
+import com.example.bunnypost.data.remote.model.UserListResponse
 import com.example.bunnypost.data.remote.model.MeResponse
 import okhttp3.Response
 import retrofit2.http.*
@@ -48,6 +49,12 @@ interface ApiService {
         @Query("page") page: Int,
         @Query("limit") limit: Int
     ): PostsResponse
+
+    @GET("users")
+    suspend fun searchUsersFromApi(
+        @Header("Authorization") token: String,
+        @Query("search") query: String
+    ): UserListResponse
 
     @GET("posts/{id}")
     suspend fun getPostById(

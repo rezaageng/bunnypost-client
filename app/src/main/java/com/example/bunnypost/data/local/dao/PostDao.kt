@@ -23,4 +23,9 @@ interface PostDao {
 
     @Query("DELETE FROM posts")
     fun clearAllPosts(): Int
+
+    @Query("SELECT * FROM posts WHERE id = :postId LIMIT 1")
+    fun getPostById(postId: String): Flow<PostEntity?>
+
+
 }
