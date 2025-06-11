@@ -2,9 +2,11 @@ package com.example.bunnypost.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle // Import the account icon
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -13,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -48,56 +49,64 @@ fun ProfileDetailScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp, vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
         ) {
-            // Profile Placeholder: Circular background with an icon
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer), // A light background from your theme
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle, // Using a Material Design icon
-                    contentDescription = "Profile Icon",
-                    modifier = Modifier.size(100.dp), // Make the icon large
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer // Color for the icon
-                )
+            item {
+                Column {
+                    // Header image placeholder
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        // Profile picture overlapping
+                        Card(
+                            shape = CircleShape,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .align(Alignment.BottomStart)
+                                .offset(x = 16.dp, y = 50.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = "Profile",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(8.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(66.dp))
+
+                    // Info section
+                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Text(
+                            text = username.replaceFirstChar { it.uppercaseChar() } + " " + username.replaceFirstChar { it.uppercaseChar() },
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp
+                        )
+                        Text(text = "@$username", fontSize = 16.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = "Bunny Post User")
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+
+                        }
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
 
-            // Username
-            Text(
-                text = "@$username",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.primary
-            )
 
-            Spacer(modifier = Modifier.height(8.dp))
 
-            // A small descriptor or status
-            Text(
-                text = "Bunny Post User",
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun ProfileDetailScreenPreview() {
-    MaterialTheme {
-        ProfileDetailScreen(username = "bunnyLover99") { /* Do nothing for preview */ }
-    }
-}
