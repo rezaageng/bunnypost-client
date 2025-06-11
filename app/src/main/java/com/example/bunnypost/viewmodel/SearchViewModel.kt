@@ -24,8 +24,18 @@ class SearchViewModel @Inject constructor(
         .debounce(300)
         .flatMapLatest { query ->
             flow {
-                if (query.isBlank()) emit(emptyList())
-                else emit(userRepository.searchUsers(query))
+                if (query.isBlank()) {
+                    emit(emptyList())
+                } else {
+                    try {
+                        emit(userRepository.searchUsers(query)) // Menangkap pengecualian di sini
+                    } catch (e: Exception) {
+                        // Mengeluarkan daftar kosong jika terjadi kesalahan untuk mencegah crash
+                        emit(emptyList())
+                        // Anda bisa menambahkan logika logging atau menampilkan pesan error di UI di sini jika diperlukan
+                        // e.g., _errorState.value = "Error fetching users: ${e.message}"
+                    }
+                }
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
@@ -33,8 +43,17 @@ class SearchViewModel @Inject constructor(
     val searchResultsPosts: StateFlow<List<PostEntity>> = _searchQuery
         .debounce(300)
         .flatMapLatest { query ->
-            if (query.isBlank()) flowOf(emptyList())
-            else postRepository.searchPosts(query)
+            if (query.isBlank()) {
+                flowOf(emptyList())
+            } else {
+                postRepository.searchPosts(query)
+                    .catch { e -> // Menggunakan operator .catch untuk menangani pengecualian dari Flow
+                        // Mengeluarkan daftar kosong jika terjadi kesalahan untuk mencegah crash
+                        emit(emptyList())
+                        // Anda bisa menambahkan logika logging atau menampilkan pesan error di UI di sini jika diperlukan
+                        // e.g., _errorState.value = "Error fetching posts: ${e.message}"
+                    }
+            }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 

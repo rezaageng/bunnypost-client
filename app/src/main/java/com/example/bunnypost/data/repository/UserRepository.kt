@@ -16,11 +16,17 @@ class UserRepository @Inject constructor(
         val token = userPreferences.getToken().first() ?: throw Exception("User not logged in")
         val response: UserListResponse = apiService.searchUsersFromApi("Bearer $token", query)
 
-        if (response.success) {
+        // MODIFICATION START
+        // If the API call is successful and data is present, map it.
+        // Otherwise, return an empty list.
+        if (response.success && response.data != null) { // Add null check for response.data
             return response.data.map { it.toUserEntity() }
         } else {
-            throw Exception(response.message)
+            // Return an empty list instead of throwing an exception
+            // This prevents the force close when no results are found or API indicates failure
+            return emptyList()
         }
+        // MODIFICATION END
     }
 }
 
