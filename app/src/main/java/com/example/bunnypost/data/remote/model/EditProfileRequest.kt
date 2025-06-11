@@ -7,19 +7,16 @@ data class EditProfileRequest(
     val firstName: String,
     val lastName: String,
     val username: String,
-    val bio: String?,
-    val profilePicture: String? // Ini akan menjadi Base64 string
+    val bio: String? = null, // Tambahkan default null untuk bio agar konsisten
+    val profilePicture: String? = null // Tambahkan default null untuk profilePicture
 ) {
     fun toMap(): Map<String, String> {
         val map = mutableMapOf<String, String>()
-        // Pastikan kunci-kunci ini cocok persis dengan yang diharapkan oleh API backend Anda.
-        // Jika backend mengharapkan "firstName" dan "lastName" (camelCase), sesuaikan di sini.
-        map["first_name"] = firstName
-        map["last_name"] = lastName
+        map["firstName"] = firstName // Contoh jika backend mengharapkan camelCase
+        map["lastName"] = lastName
         map["username"] = username
         bio?.let { map["bio"] = it }
-        // Pastikan kunci "profile_picture" juga cocok dengan yang diharapkan backend
-        profilePicture?.let { map["profile_picture"] = it }
+        profilePicture?.let { map["profilePicture"] = it }
         return map
     }
 }

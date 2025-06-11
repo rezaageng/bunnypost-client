@@ -1,3 +1,4 @@
+// Lokasi: com/example/bunnypost/viewmodel/PostViewModel.kt
 package com.example.bunnypost.viewmodel
 
 import androidx.compose.runtime.getValue
@@ -13,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.example.bunnypost.data.helper.Result // PASTIKAN IMPORT INI ADA DAN MENGARAH KE SEALED CLASS RESULT KUSTOM ANDA
 
 @HiltViewModel
 class PostViewModel @Inject constructor(
@@ -61,7 +63,6 @@ class PostViewModel @Inject constructor(
         null
     )
 
-    // DIPERBAIKI: Typo 'statein' diubah menjadi 'stateIn'
     val currentUsername: StateFlow<String?> = userPreferences.getUsername().stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
@@ -234,6 +235,7 @@ class PostViewModel @Inject constructor(
         }
     }
 
+    // --- BAGIAN YANG DIREVISI DAN SUDAH SESUAI DENGAN RESULT.KT ANDA ---
     fun addComment(postId: String) {
         val commentContent = _commentText.value.trim()
         if (commentContent.isBlank()) return
@@ -244,17 +246,25 @@ class PostViewModel @Inject constructor(
             try {
                 val result = postRepository.addComment(postId, commentContent)
 
-                result.onSuccess {
-                    _commentText.value = "" // Kosongkan text field setelah berhasil
-                    getPostDetail(postId) // Refresh data untuk menampilkan komentar baru
-                }.onFailure { exception ->
-                    _error.value = exception.message ?: "Terjadi kesalahan"
+                when (result) { // Gunakan 'when' untuk menangani sealed class Result kustom Anda
+                    is Result.Success -> {
+                        _commentText.value = "" // Kosongkan text field setelah berhasil
+                        getPostDetail(postId) // Refresh data untuk menampilkan komentar baru
+                    }
+                    is Result.Error -> {
+                        _error.value = result.message // Ambil pesan error dari objek Result.Error
+                    }
+                    Result.Loading -> {
+                        // Tidak ada penanganan khusus di sini, _isCommenting sudah diatur true
+                    }
                 }
             } catch (e: Exception) {
+                // Tangani kesalahan tak terduga yang mungkin tidak tertangkap di repository
                 _error.value = e.message
             } finally {
                 _isCommenting.value = false // Pastikan ini selalu dijalankan
             }
         }
     }
+    // --- AKHIR BAGIAN REVISI ---
 }

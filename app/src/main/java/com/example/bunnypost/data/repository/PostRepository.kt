@@ -1,6 +1,7 @@
+// Lokasi: com/example/bunnypost/data/repository/PostRepository.kt
 package com.example.bunnypost.data.repository
 
-import com.example.bunnypost.data.helper.Result
+import com.example.bunnypost.data.helper.Result // Pastikan import ini mengarah ke sealed class Result kustom Anda
 import com.example.bunnypost.data.local.UserPreferences
 import com.example.bunnypost.data.local.dao.PostDao
 import com.example.bunnypost.data.local.entity.PostEntity
@@ -85,20 +86,27 @@ class PostRepository @Inject constructor(
         apiService.unlikePost("Bearer $token", like.id)
     }
 
+    // --- BAGIAN YANG DIREVISI SEBELUMNYA DAN SUDAH SESUAI DENGAN RESULT.KT ANDA ---
     suspend fun addComment(postId: String, content: String): Result<Unit> {
         return try {
             val token = userPreferences.getToken().firstOrNull() ?: throw Exception("Token tidak ditemukan")
             // Pastikan ApiService Anda mengembalikan Response<Unit> untuk fungsi ini
             val response = apiService.addComment("Bearer $token", postId, content)
+
+            // Periksa isSuccessful dari Retrofit Response
             if (response.isSuccessful) {
-                Result.success(Unit)
+                Result.Success(Unit) // Gunakan Result.Success dari sealed class kustom
             } else {
-                Result.failure(Exception("Gagal mengirim komentar: Error ${response.code()}"))
+                val errorMessage = response.errorBody()?.string() ?: "Unknown error"
+                // HANYA MENGIRIM MESSAGE SAJA SESUAI DENGAN DEFINISI Result.Error ANDA
+                Result.Error("Gagal mengirim komentar: Error ${response.code()} - $errorMessage")
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            // HANYA MENGIRIM MESSAGE SAJA SESUAI DENGAN DEFINISI Result.Error ANDA
+            Result.Error(e.message ?: "Terjadi kesalahan saat menambahkan komentar")
         }
     }
+    // --- AKHIR BAGIAN REVISI ---
 
     suspend fun fetchPosts(page: Int): PostsResponse {
         val token = userPreferences.getToken().first() ?: throw Exception("User not logged in")
@@ -190,7 +198,6 @@ class PostRepository @Inject constructor(
             throw Exception(response.message)
         }
     }
-
 
     suspend fun getLikedPostsByUser(userId: String): List<PostEntity> {
         val token = userPreferences.getToken().first() ?: throw Exception("User not logged in")
