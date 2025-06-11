@@ -3,14 +3,11 @@ package com.example.bunnypost.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bunnypost.data.helper.Result
-import com.example.bunnypost.data.local.entity.PostEntity
-import com.example.bunnypost.data.local.entity.UserEntity
-import com.example.bunnypost.data.repository.AuthRepository
-import com.example.bunnypost.data.repository.PostRepository
+import com.example.bunnypost.data.remote.model.UserData
+import com.example.bunnypost.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
