@@ -12,10 +12,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.bunnypost.data.helper.Result
 import com.example.bunnypost.data.local.entity.UserEntity
+import com.example.bunnypost.di.SessionManager // <-- Pastikan ini diimpor
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    // TAMBAHKAN INI: Injeksi SessionManager
+    val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<Result<String>?>(null)

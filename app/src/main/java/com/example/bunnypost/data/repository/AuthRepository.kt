@@ -6,9 +6,7 @@ import com.example.bunnypost.data.local.dao.UserDao
 import com.example.bunnypost.data.local.entity.UserEntity
 import com.example.bunnypost.data.remote.ApiService
 import com.example.bunnypost.data.remote.model.LoginRequest
-import com.example.bunnypost.data.remote.model.LoginResponse
 import com.example.bunnypost.data.remote.model.SignUpRequest
-import com.example.bunnypost.data.remote.model.UserResponse
 import com.example.bunnypost.data.remote.model.EditProfileRequest
 import com.example.bunnypost.data.helper.Result
 import kotlinx.coroutines.Dispatchers
@@ -28,22 +26,72 @@ class AuthRepository @Inject constructor(
     fun login(email: String, password: String): Flow<Result<String>> = flow {
         emit(Result.Loading)
         try {
-            val response = apiService.login(LoginRequest(email, password).toMap())
-            if (response.success) {
-                emit(Result.Success(response.token))
+            // Langkah 1: Login untuk mendapatkan token
+            val loginResponse = apiService.login(LoginRequest(email, password).toMap())
+
+            if (loginResponse.success) {
+                val token = loginResponse.token
+                userPreferences.saveUserToken(token)
+
+                // Langkah 2: Panggil /users/me untuk mendapatkan data pengguna
+                val meResponse = apiService.getMe("Bearer $token")
+                if (meResponse.success) {
+                    // Langkah 3: Simpan userId dan username dari respons /me
+                    val userId = meResponse.data.id
+                    val username = meResponse.data.username // Ambil username
+                    userPreferences.saveUserId(userId)
+                    userPreferences.saveUsername(username) // Simpan username
+                } else {
+                    // Jika gagal mengambil data 'me', anggap saja sebagai error
+                    throw Exception(meResponse.message)
+                }
+
+                // Kirim sinyal sukses setelah semua data (token, userId, & username) tersimpan
+                emit(Result.Success(token))
             } else {
-                emit(Result.Error(response.message ?: "Login failed. Unknown message."))
+                throw Exception(loginResponse.message)
             }
         } catch (e: Exception) {
             emit(Result.Error(e.message ?: "Network error during login."))
         }
-    }.flowOn(Dispatchers.IO)
+    }
+
+    // Fungsi signup yang duplikat sudah dihapus. Hanya ini yang digunakan.
+    fun signup(email: String, password: String, username: String, firstName: String, lastName: String): Flow<Result<String>> = flow {
+        emit(Result.Loading)
+        try {
+            // Langkah 1: Mendaftar untuk mendapatkan token
+            val signupResponse = apiService.signup(SignUpRequest(email, password, username, firstName, lastName).toMap())
+
+            if (signupResponse.success) {
+                val token = signupResponse.token
+                userPreferences.saveUserToken(token)
+
+                // Langkah 2: Panggil endpoint /users/me menggunakan token baru
+                val meResponse = apiService.getMe("Bearer $token")
+                if (meResponse.success) {
+                    // Langkah 3: Simpan userId dan username yang didapat dari /users/me
+                    val userId = meResponse.data.id
+                    val registeredUsername = meResponse.data.username // Ambil username
+                    userPreferences.saveUserId(userId)
+                    userPreferences.saveUsername(registeredUsername) // Simpan username
+                } else {
+                    // Jika gagal mengambil data 'me', anggap sebagai error
+                    throw Exception(meResponse.message)
+                }
+
+                // Kirim sinyal sukses setelah semua data (token, userId, & username) tersimpan
+                emit(Result.Success(token))
+            } else {
+                throw Exception(signupResponse.message)
+            }
+        } catch (e: Exception) {
+            emit(Result.Error(e.message ?: "Unknown error has occurred."))
+        }
+    }
 
     suspend fun logout() {
-        withContext(Dispatchers.IO) {
-            userPreferences.clearUserToken()
-            userDao.deleteAll()
-        }
+        userPreferences.clearUserData()
     }
 
     suspend fun isLoggedIn(): Boolean {
@@ -61,25 +109,23 @@ class AuthRepository @Inject constructor(
                 return@flow
             }
 
-            val response = apiService.getMyProfile("Bearer $token")
+            // DIPERBAIKI: Menggunakan getMe yang ada di ApiService
+            val response = apiService.getMe("Bearer $token")
             if (response.success) {
-                response.data?.let { userData ->
-                    val userEntity = UserEntity(
-                        id = userData.id,
-                        email = userData.email,
-                        username = userData.username,
-                        firstName = userData.firstName,
-                        lastName = userData.lastName,
-                        profilePicture = userData.profilePicture,
-                        bio = userData.bio
-                    )
-                    withContext(Dispatchers.IO) {
-                        userDao.insertUser(userEntity)
-                    }
-                    emit(Result.Success(userEntity))
-                } ?: run {
-                    emit(Result.Error(response.message ?: "User data is null in API response."))
+                val userData = response.data
+                val userEntity = UserEntity(
+                    id = userData.id,
+                    email = userData.email,
+                    username = userData.username,
+                    firstName = "Unknown", // getMe tidak mengembalikan ini, perlu disesuaikan
+                    lastName = "User",   // getMe tidak mengembalikan ini, perlu disesuaikan
+                    profilePicture = userData.profilePicture,
+                    bio = null // getMe tidak mengembalikan bio
+                )
+                withContext(Dispatchers.IO) {
+                    userDao.insertUser(userEntity)
                 }
+                emit(Result.Success(userEntity))
             } else {
                 emit(Result.Error(response.message ?: "Failed to fetch user profile from API."))
             }
@@ -96,27 +142,6 @@ class AuthRepository @Inject constructor(
         }
     }.flowOn(Dispatchers.IO)
 
-    fun signup(
-        email: String,
-        password: String,
-        username: String,
-        firstName: String,
-        lastName: String
-    ): Flow<Result<String>> = flow {
-        emit(Result.Loading)
-        try {
-            val response = apiService.signup(
-                SignUpRequest(email, password, username, firstName, lastName).toMap()
-            )
-            if (response.success) {
-                emit(Result.Success(response.message ?: "Signup successful."))
-            } else {
-                emit(Result.Error(response.message ?: "Signup failed. Unknown message."))
-            }
-        } catch (e: Exception) {
-            emit(Result.Error(e.message ?: "Network error during signup."))
-        }
-    }.flowOn(Dispatchers.IO)
 
     fun updateProfile(
         firstName: String,
@@ -133,6 +158,7 @@ class AuthRepository @Inject constructor(
             }
 
             val request = EditProfileRequest(firstName, lastName, username, bio)
+            // Fungsi updateMyProfile akan kita tambahkan di ApiService
             val response = apiService.updateMyProfile("Bearer $token", request.toMap())
 
             if (response.success) {

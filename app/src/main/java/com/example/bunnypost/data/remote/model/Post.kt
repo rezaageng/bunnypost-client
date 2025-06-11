@@ -8,15 +8,16 @@ data class Post(
     val createdAt: String,
     val updatedAt: String,
     val author: Author,
-    val comments: List<Comment>,
-    val likes: List<Like>
+    val comments: List<Comment> = emptyList(),
+    val likes: List<Like> = emptyList()
 )
 
 data class Author(
     val id: String,
     val username: String,
     val firstName: String,
-    val lastName: String
+    val lastName: String,
+    val profilePicture: String? = null // Add this line
 )
 
 data class Comment(

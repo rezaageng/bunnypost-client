@@ -21,7 +21,8 @@ import com.example.bunnypost.viewmodel.ProfileViewModel
 fun MainScreen(
     authViewModel: AuthViewModel,
     onLogout: () -> Unit,
-    onEditProfileClick: () -> Unit // Tambahkan parameter ini
+    onEditProfileClick: () -> Unit, // <-- KOMA YANG HILANG DITAMBAHKAN DI SINI
+    onPostClick: (String) -> Unit
 ) {
     val bottomNavController = rememberNavController()
     val postViewModel: PostViewModel = hiltViewModel()
@@ -30,12 +31,19 @@ fun MainScreen(
         bottomBar = { BottomNavigationBar(navController = bottomNavController) }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            NavHost(bottomNavController, startDestination = NavigationItem.Home.route) {
+            NavHost(
+                navController = bottomNavController,
+                startDestination = NavigationItem.Home.route
+            ) {
                 composable(NavigationItem.Home.route) {
-                    HomeScreen(viewModel = postViewModel)
+                    HomeScreen(
+                        viewModel = postViewModel,
+                        onPostClick = onPostClick
+                    )
                 }
+
                 composable(NavigationItem.Search.route) {
-                    SearchScreen()
+                    SearchScreen(navController = bottomNavController)
                 }
                 composable(NavigationItem.Profile.route) {
                     val profileViewModel: ProfileViewModel = hiltViewModel()
@@ -47,6 +55,19 @@ fun MainScreen(
                             }
                         },
                         onEditProfileClick = onEditProfileClick // Teruskan parameter ini
+                    )
+                }
+                composable("post/{id}") { backStackEntry ->
+                    val postId = backStackEntry.arguments?.getString("id") ?: ""
+                    PostDetailScreen(
+                        postId = postId,
+                    )
+                }
+                composable("profile/{username}") { backStackEntry ->
+                    val username = backStackEntry.arguments?.getString("username") ?: ""
+                    ProfileDetailScreen(
+                        username = username,
+                        onBack = { bottomNavController.popBackStack() }
                     )
                 }
             }

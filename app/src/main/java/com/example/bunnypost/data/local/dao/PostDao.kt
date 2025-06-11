@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.bunnypost.data.local.entity.PostEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -17,15 +18,16 @@ interface PostDao {
     @Query("SELECT * FROM posts WHERE userId = :userId ORDER BY timestamp DESC")
     fun getPostsByUserId(userId: String): Flow<List<PostEntity>>
 
-    // Memasukkan satu postingan, mengganti jika ada konflik
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPost(post: PostEntity): Unit
+    @Update
+    fun updatePost(post: PostEntity)
 
-    // Memasukkan daftar postingan, mengganti jika ada konflik
+    // DITAMBAHKAN: Fungsi untuk menyisipkan daftar postingan
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPosts(posts: List<PostEntity>): Unit
+    suspend fun insertPosts(posts: List<PostEntity>)
 
-    // Menghapus semua postingan dari tabel
     @Query("DELETE FROM posts")
-    suspend fun deleteAllPosts(): Unit // Mengubah nama agar lebih konsisten dengan fungsi Room lainnya
+    fun clearAllPosts(): Int
+
+    @Query("SELECT * FROM posts WHERE id = :postId LIMIT 1")
+    fun getPostById(postId: String): Flow<PostEntity?>
 }

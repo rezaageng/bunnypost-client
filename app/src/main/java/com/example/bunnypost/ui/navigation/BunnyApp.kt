@@ -7,9 +7,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.bunnypost.ui.screen.*
 import com.example.bunnypost.viewmodel.AuthViewModel
 import com.example.bunnypost.viewmodel.ProfileViewModel
@@ -22,19 +24,14 @@ fun BunnyApp() {
     val authViewModel: AuthViewModel = hiltViewModel()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
-    LaunchedEffect(isLoggedIn) {
-        when (isLoggedIn) {
-            true -> navController.navigate("main") {
-                popUpTo("login") { inclusive = true }
-                popUpTo("splash") { inclusive = true }
-            }
-            false -> navController.navigate("login") {
-                popUpTo("profile") { inclusive = true }
-                popUpTo("main") { inclusive = true }
-                popUpTo("splash") { inclusive = true }
-            }
-            null -> {
-                // Masih memeriksa status login
+    // Global logout event handler
+    LaunchedEffect(Unit) {
+        authViewModel.sessionManager.logoutEvent.collect {
+            navController.navigate("login") {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
             }
         }
     }
@@ -59,6 +56,7 @@ fun BunnyApp() {
                 }
             )
         }
+
         composable("login") {
             LoginScreen(
                 authViewModel = authViewModel,
@@ -72,6 +70,7 @@ fun BunnyApp() {
                 }
             )
         }
+
         composable("signup") {
             SignUpScreen(
                 authViewModel = authViewModel,
@@ -87,6 +86,7 @@ fun BunnyApp() {
                 }
             )
         }
+
         composable("main") {
             MainScreen(
                 authViewModel = authViewModel,
@@ -97,8 +97,12 @@ fun BunnyApp() {
                         }
                     }
                 },
-                onEditProfileClick = { // Tambahkan parameter ini
+                onEditProfileClick = {
                     navController.navigate("editProfile")
+                },
+                // DIPERBAIKI: Menambahkan parameter onPostClick yang hilang
+                onPostClick = { postId ->
+                    navController.navigate("postDetail/$postId")
                 }
             )
         }
@@ -131,6 +135,14 @@ fun BunnyApp() {
                     navController.popBackStack()
                 }
             )
+        }
+
+        composable(
+            route = "postDetail/{postId}",
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
+            PostDetailScreen(postId = postId)
         }
     }
 }
