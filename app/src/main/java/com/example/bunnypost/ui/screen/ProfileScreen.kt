@@ -67,77 +67,88 @@ fun ProfileScreen(
             is Result.Success -> {
                 val user = state.data
 
-                if (!user.profilePicture.isNullOrEmpty()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(user.profilePicture)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Profile Picture",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = user.firstName.firstOrNull()?.toString()?.uppercase() ?: "U",
-                            style = MaterialTheme.typography.headlineLarge,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 48.sp
-                        )
+
+                    Column {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                        ) {
+                            if (!user.profilePicture.isNullOrEmpty()) {
+                                Card(
+                                    shape = CircleShape,
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .align(Alignment.BottomStart)
+                                        .offset(x = 16.dp, y = 50.dp),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                ) {
+                                    user.profilePicture?.let {
+                                        AsyncImage(
+                                            model = it,
+                                            contentDescription = "Profile Picture",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = user.firstName.firstOrNull()?.toString()?.uppercase() ?: "U",
+                                        style = MaterialTheme.typography.headlineLarge,
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 48.sp
+                                    )
+                                }
+                            }
+
+                        }
+                        Spacer(modifier = Modifier.height(66.dp))
+                        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Text(
+                                text = "${user.firstName} ${user.lastName}",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp
+                            )
+                            if(!user.bio.isNullOrEmpty()) {
+                                Text(text = "@${user.username}", fontSize = 16.sp)
+                                user.bio?.let {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(text = it)
+                                }
+                            }else{
+                                Text(text = "No bio available.",fontSize = 16.sp)
+                                user.bio?.let {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(text = it)
+                                }
+
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = onEditProfileClick,
+                            ) {
+                                Text(
+                                    "Edit Profile",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(onClick = onLogout) {
+                                Text("Logout")
+                            }
+                        }
                     }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = "${user.firstName} ${user.lastName}",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "@${user.username}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                if (!user.bio.isNullOrEmpty()) {
-                    Text(
-                        text = user.bio,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                } else {
-                    Text(
-                        text = "No bio available.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = onEditProfileClick,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        "Edit Profile",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
                 Spacer(modifier = Modifier.height(24.dp))
 
                 TabRow(selectedTabIndex = selectedTabIndex) {
@@ -178,19 +189,7 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Button(
-                    onClick = {
-                        profileViewModel.logout()
-                        onLogout()
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        "Logout",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+
             }
             is Result.Error -> {
                 Text(text = "Error: ${state.message}", color = MaterialTheme.colorScheme.error)

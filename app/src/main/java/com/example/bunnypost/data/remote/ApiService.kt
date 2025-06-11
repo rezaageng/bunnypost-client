@@ -64,17 +64,17 @@ interface ApiService {
         @Path("id") postId: String
     ): PostDetailResponse
 
-    // Like a post
+    // ❤️ Like a post (DIUBAH)
     @FormUrlEncoded
-    @POST("likes")
+    @POST("likes") // URL diubah ke /api/likes
     suspend fun likePost(
         @Header("Authorization") token: String,
-        @Field("postId") postId: String
+        @Field("postId") postId: String // postId dikirim sebagai field di body
     )
 
-    // Add comment to post
+    // 💬 Add comment to post (DIUBAH)
     @FormUrlEncoded
-    @POST("comments")
+    @POST("comments") // URL diubah ke /api/comments
     suspend fun addComment(
         @Header("Authorization") token: String,
         @Field("postId") postId: String,
