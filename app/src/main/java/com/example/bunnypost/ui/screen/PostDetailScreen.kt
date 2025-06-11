@@ -20,9 +20,16 @@ import com.example.bunnypost.data.remote.model.Comment
 import com.example.bunnypost.data.remote.model.Post
 import com.example.bunnypost.viewmodel.PostViewModel
 import androidx.compose.runtime.collectAsState
+import androidx.compose.material.icons.filled.ArrowBack
 
+
+@OptIn(ExperimentalMaterial3Api::class) // Add this annotation for TopAppBar
 @Composable
-fun PostDetailScreen(postId: String, viewModel: PostViewModel = hiltViewModel()) {
+fun PostDetailScreen(
+    postId: String,
+    viewModel: PostViewModel = hiltViewModel(),
+    onBack: () -> Unit // Add onBack parameter
+) {
     val postDetail by viewModel.postDetail.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -33,133 +40,144 @@ fun PostDetailScreen(postId: String, viewModel: PostViewModel = hiltViewModel())
         viewModel.getPostDetail(postId)
     }
 
-    when {
-        isLoading && postDetail == null -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+    Scaffold( // Use Scaffold to provide a top bar
+        topBar = {
+            TopAppBar(
+                title = { Text("Post Detail") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) { // Back button
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
         }
-        error != null -> {
-            Box(
-                Modifier.fillMaxSize().padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "Error: $error", color = MaterialTheme.colorScheme.error)
+    ) { innerPadding -> // Apply innerPadding to the content
+        when {
+            isLoading && postDetail == null -> {
+                Box(Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
-        }
-        postDetail != null -> {
-            val post = postDetail!!
-            val comments = post.comments
+            error != null -> {
+                Box(
+                    Modifier.fillMaxSize().padding(innerPadding).padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "Error: $error", color = MaterialTheme.colorScheme.error)
+                }
+            }
+            postDetail != null -> {
+                val post = postDetail!!
+                val comments = post.comments
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(vertical = 16.dp)
-            ) {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
-                            Text(post.title, style = MaterialTheme.typography.headlineSmall)
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                "Author: ${post.author.username}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(Modifier.height(12.dp))
-                            Text(post.content, style = MaterialTheme.typography.bodyLarge)
-                            Spacer(Modifier.height(16.dp))
-                            Divider()
-                            Spacer(Modifier.height(16.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(24.dp)
-                            ) {
-                                CountDisplay(
-                                    icon = Icons.Default.Favorite,
-                                    count = post.likes.size,
-                                    text = "Likes",
-                                    isToggled = isLiked,
-                                    // --- UBAH BARIS INI ---
-                                    onClick = { viewModel.toggleLikeOnDetail(postId) }
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
+                        .padding(innerPadding), // Apply inner padding here
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+                                Text(post.title, style = MaterialTheme.typography.headlineSmall)
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    "Author: ${post.author.username}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                CountDisplay(
-                                    icon = Icons.Default.Comment,
-                                    count = comments.size,
-                                    text = "Comments",
-                                    isToggled = false,
-                                    onClick = { }
+                                Spacer(Modifier.height(12.dp))
+                                Text(post.content, style = MaterialTheme.typography.bodyLarge)
+                                Spacer(Modifier.height(16.dp))
+                                Divider()
+                                Spacer(Modifier.height(16.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(24.dp)
+                                ) {
+                                    CountDisplay(
+                                        icon = Icons.Default.Favorite,
+                                        count = post.likes.size,
+                                        text = "Likes",
+                                        isToggled = isLiked,
+                                        onClick = { viewModel.toggleLikeOnDetail(postId) }
+                                    )
+                                    CountDisplay(
+                                        icon = Icons.Default.Comment,
+                                        count = comments.size,
+                                        text = "Comments",
+                                        isToggled = false,
+                                        onClick = { }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    item {
+                        Text(
+                            "Komentar",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+
+                    items(comments, key = { it.id }) { comment ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                val authorDisplayName = if (comment.authorId == post.author.id) {
+                                    post.author.username
+                                } else {
+                                    val shortId = comment.authorId?.takeLast(6) ?: "XXXXXX"
+                                    "User ...$shortId"
+                                }
+
+                                Text(
+                                    text = authorDisplayName,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    text = comment.content,
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
                             }
                         }
                     }
-                }
 
-                item {
-                    Text(
-                        "Komentar",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-
-                // --- BAGIAN INI DIUBAH ---
-                items(comments, key = { it.id }) { comment ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            val authorDisplayName = if (comment.authorId == post.author.id) {
-                                post.author.username
-                            } else {
-                                val shortId = comment.authorId?.takeLast(6) ?: "XXXXXX"
-                                "User ...$shortId"
-                            }
-
-                            Text(
-                                text = authorDisplayName,
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = comment.content,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = commentText,
+                            onValueChange = { commentText = it },
+                            label = { Text("Tambahkan komentar") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                if (commentText.isNotBlank()) {
+                                    viewModel.addComment(postId, commentText.trim())
+                                    commentText = ""
+                                }
+                            },
+                            enabled = commentText.isNotBlank() && !isLoading,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Kirim Komentar")
                         }
-                    }
-                }
-
-
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = commentText,
-                        onValueChange = { commentText = it },
-                        label = { Text("Tambahkan komentar") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = {
-                            if (commentText.isNotBlank()) {
-                                viewModel.addComment(postId, commentText.trim())
-                                commentText = ""
-                            }
-                        },
-                        enabled = commentText.isNotBlank() && !isLoading,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Kirim Komentar")
                     }
                 }
             }
@@ -173,7 +191,7 @@ fun CountDisplay(
     count: Int,
     text: String,
     isToggled: Boolean,
-    onClick: () -> Unit // Tipe data untuk aksi klik
+    onClick: () -> Unit
 ) {
     val modifier = Modifier.clickable(onClick = onClick)
 
@@ -185,7 +203,6 @@ fun CountDisplay(
         Icon(
             imageVector = icon,
             contentDescription = text,
-            // Gunakan isToggled untuk menentukan warna
             tint = if (isToggled) MaterialTheme.colorScheme.primary else Color.Gray,
             modifier = Modifier.size(20.dp)
         )
