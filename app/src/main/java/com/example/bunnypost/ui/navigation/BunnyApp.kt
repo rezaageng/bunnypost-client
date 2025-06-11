@@ -7,9 +7,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.bunnypost.ui.screen.*
 import com.example.bunnypost.viewmodel.AuthViewModel
 
@@ -18,11 +20,10 @@ fun BunnyApp() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = hiltViewModel()
 
-    // Listen for global logout events
+    // Global logout event handler
     LaunchedEffect(Unit) {
         authViewModel.sessionManager.logoutEvent.collect {
             navController.navigate("login") {
-                // Pop entire back stack to prevent going back to authenticated screens
                 popUpTo(navController.graph.findStartDestination().id) {
                     inclusive = true
                 }
@@ -30,11 +31,11 @@ fun BunnyApp() {
             }
         }
     }
-    //... NavHost code remains the same
+
     NavHost(
-        navController = navController, startDestination = "splash", modifier = Modifier.background(
-            MaterialTheme.colorScheme.background
-        )
+        navController = navController,
+        startDestination = "splash",
+        modifier = Modifier.background(MaterialTheme.colorScheme.background)
     ) {
         composable("splash") {
             SplashScreen(
@@ -51,6 +52,7 @@ fun BunnyApp() {
                 }
             )
         }
+
         composable("login") {
             LoginScreen(
                 authViewModel = authViewModel,
@@ -64,6 +66,7 @@ fun BunnyApp() {
                 }
             )
         }
+
         composable("signup") {
             SignUpScreen(
                 authViewModel = authViewModel,
@@ -79,6 +82,7 @@ fun BunnyApp() {
                 }
             )
         }
+
         composable("main") {
             MainScreen(
                 authViewModel = authViewModel,
@@ -86,8 +90,19 @@ fun BunnyApp() {
                     navController.navigate("login") {
                         popUpTo("main") { inclusive = true }
                     }
+                },
+                onPostClick = { postId ->
+                    navController.navigate("postDetail/$postId")
                 }
             )
+        }
+
+        composable(
+            route = "postDetail/{postId}",
+            arguments = listOf(navArgument("postId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
+            PostDetailScreen(postId = postId)
         }
     }
 }

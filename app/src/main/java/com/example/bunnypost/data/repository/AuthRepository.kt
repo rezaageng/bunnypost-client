@@ -17,12 +17,28 @@ class AuthRepository @Inject constructor(
     fun login(email: String, password: String): Flow<Result<String>> = flow {
         emit(Result.Loading)
         try {
-            val response = apiService.login(LoginRequest(email, password).toMap())
-            if (response.success) {
-                userPreferences.saveUserToken(response.token)
-                emit(Result.Success(response.token))
+            // Langkah 1: Login untuk mendapatkan token
+            val loginResponse = apiService.login(LoginRequest(email, password).toMap())
+
+            if (loginResponse.success) {
+                val token = loginResponse.token
+                userPreferences.saveUserToken(token)
+
+                // Langkah 2: Panggil /users/me untuk mendapatkan data pengguna
+                val meResponse = apiService.getMe("Bearer $token")
+                if (meResponse.success) {
+                    // Langkah 3: Simpan userId dari respons /me
+                    val userId = meResponse.data.id
+                    userPreferences.saveUserId(userId)
+                } else {
+                    // Jika gagal mengambil data 'me', anggap saja sebagai error
+                    throw Exception(meResponse.message)
+                }
+
+                // Kirim sinyal sukses setelah semua data (token & userId) tersimpan
+                emit(Result.Success(token))
             } else {
-                throw Exception(response.message)
+                throw Exception(loginResponse.message)
             }
         } catch (e: Exception) {
             emit(Result.Error(e.message ?: "Unknown error has occurred."))
@@ -32,21 +48,37 @@ class AuthRepository @Inject constructor(
     fun signup(email: String, password: String, username: String, firstName: String, lastName: String): Flow<Result<String>> = flow {
         emit(Result.Loading)
         try {
-            val response = apiService.signup(SignUpRequest(email, password, username, firstName, lastName).toMap())
-            if (response.success) {
-                userPreferences.saveUserToken(response.token)
-                emit(Result.Success(response.token))
+            // Langkah 1: Mendaftar untuk mendapatkan token
+            val signupResponse = apiService.signup(SignUpRequest(email, password, username, firstName, lastName).toMap())
+
+            if (signupResponse.success) {
+                val token = signupResponse.token
+                userPreferences.saveUserToken(token)
+
+                // Langkah 2: Panggil endpoint /users/me menggunakan token baru
+                val meResponse = apiService.getMe("Bearer $token")
+                if (meResponse.success) {
+                    // Langkah 3: Simpan userId yang didapat dari /users/me
+                    val userId = meResponse.data.id
+                    userPreferences.saveUserId(userId)
+                } else {
+                    // Jika gagal mengambil data 'me', anggap sebagai error
+                    throw Exception(meResponse.message)
+                }
+
+                // Kirim sinyal sukses setelah semua data (token & userId) tersimpan
+                emit(Result.Success(token))
             } else {
-                throw Exception(response.message)
+                throw Exception(signupResponse.message)
             }
         } catch (e: Exception) {
             emit(Result.Error(e.message ?: "Unknown error has occurred."))
         }
     }
 
-
     suspend fun logout() {
-        userPreferences.clearUserToken()
+        // DIUBAH: dari clearUserToken() menjadi clearUserData()
+        userPreferences.clearUserData()
     }
 
     suspend fun isLoggedIn(): Boolean {
