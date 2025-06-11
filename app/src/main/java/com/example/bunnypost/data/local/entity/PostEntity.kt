@@ -13,5 +13,8 @@ data class PostEntity(
     val authorId: String,
     val authorUsername: String,
     val authorFirstName: String,
-    val authorLastName: String
+    val authorLastName: String,
+    val likesCount: Int = 0,
+    val commentsCount: Int = 0,
+    val isLiked: Boolean = false
 )

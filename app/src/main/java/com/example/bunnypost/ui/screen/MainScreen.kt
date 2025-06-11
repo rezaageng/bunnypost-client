@@ -19,7 +19,8 @@ import com.example.bunnypost.viewmodel.PostViewModel
 @Composable
 fun MainScreen(
     authViewModel: AuthViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onPostClick: (String) -> Unit
 ) {
     val bottomNavController = rememberNavController()
     val postViewModel: PostViewModel = hiltViewModel()
@@ -33,8 +34,12 @@ fun MainScreen(
                 startDestination = NavigationItem.Home.route
             ) {
                 composable(NavigationItem.Home.route) {
-                    HomeScreen(viewModel = postViewModel)
+                    HomeScreen(
+                        viewModel = postViewModel,
+                        onPostClick = onPostClick
+                    )
                 }
+
                 composable(NavigationItem.Search.route) {
                     SearchScreen(navController = bottomNavController)
                 }
