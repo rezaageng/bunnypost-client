@@ -52,7 +52,7 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.coil.kt.coil.compose)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

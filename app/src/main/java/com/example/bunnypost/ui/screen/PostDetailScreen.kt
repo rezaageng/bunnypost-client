@@ -1,5 +1,12 @@
 package com.example.bunnypost.ui.screen
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Comment
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,10 +20,6 @@ import com.example.bunnypost.data.remote.model.Comment
 import com.example.bunnypost.data.remote.model.Post
 import com.example.bunnypost.viewmodel.PostViewModel
 import androidx.compose.runtime.collectAsState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
 
 @Composable
 fun PostDetailScreen(postId: String, viewModel: PostViewModel = hiltViewModel()) {
@@ -25,8 +28,6 @@ fun PostDetailScreen(postId: String, viewModel: PostViewModel = hiltViewModel())
     val error by viewModel.error.collectAsState()
     var commentText by remember { mutableStateOf("") }
     val isLiked by viewModel.isLikedByCurrentUser.collectAsState()
-    val currentUserId by viewModel.currentUserId.collectAsState()
-    val currentUsername by viewModel.currentUsername.collectAsState()
 
     LaunchedEffect(postId) {
         viewModel.getPostDetail(postId)
@@ -64,31 +65,14 @@ fun PostDetailScreen(postId: String, viewModel: PostViewModel = hiltViewModel())
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                post.author.profilePicture?.let { imageUrl ->
-                                    AsyncImage(
-                                        model = imageUrl,
-                                        contentDescription = "Author Profile Picture",
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .clip(CircleShape),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                }
-
-                                Column {
-                                    Text(post.title, style = MaterialTheme.typography.headlineSmall)
-                                    Spacer(Modifier.height(4.dp))
-                                    Text(
-                                        "Author: ${post.author.username}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
+                            Text(post.title, style = MaterialTheme.typography.headlineSmall)
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                "Author: ${post.author.username}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                             Spacer(Modifier.height(12.dp))
-
                             Text(post.content, style = MaterialTheme.typography.bodyLarge)
                             Spacer(Modifier.height(16.dp))
                             Divider()
@@ -103,6 +87,7 @@ fun PostDetailScreen(postId: String, viewModel: PostViewModel = hiltViewModel())
                                     count = post.likes.size,
                                     text = "Likes",
                                     isToggled = isLiked,
+                                    // --- UBAH BARIS INI ---
                                     onClick = { viewModel.toggleLikeOnDetail(postId) }
                                 )
                                 CountDisplay(
@@ -125,19 +110,18 @@ fun PostDetailScreen(postId: String, viewModel: PostViewModel = hiltViewModel())
                     )
                 }
 
+                // --- BAGIAN INI DIUBAH ---
                 items(comments, key = { it.id }) { comment ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            val authorDisplayName = when (comment.authorId) {
-                                post.author.id -> post.author.username
-                                currentUserId -> currentUsername ?: "You"
-                                else -> {
-                                    val shortId = comment.authorId?.takeLast(6) ?: "XXXXXX"
-                                    "User ...$shortId"
-                                }
+                            val authorDisplayName = if (comment.authorId == post.author.id) {
+                                post.author.username
+                            } else {
+                                val shortId = comment.authorId?.takeLast(6) ?: "XXXXXX"
+                                "User ...$shortId"
                             }
 
                             Text(
@@ -149,8 +133,7 @@ fun PostDetailScreen(postId: String, viewModel: PostViewModel = hiltViewModel())
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = comment.content,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface // Ubah warna teks komentar
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
@@ -190,16 +173,19 @@ fun CountDisplay(
     count: Int,
     text: String,
     isToggled: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit // Tipe data untuk aksi klik
 ) {
+    val modifier = Modifier.clickable(onClick = onClick)
+
     Row(
-        modifier = Modifier.clickable(onClick = onClick).padding(vertical = 4.dp),
+        modifier = modifier.padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = text,
+            // Gunakan isToggled untuk menentukan warna
             tint = if (isToggled) MaterialTheme.colorScheme.primary else Color.Gray,
             modifier = Modifier.size(20.dp)
         )

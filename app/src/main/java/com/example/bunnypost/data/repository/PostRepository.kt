@@ -2,7 +2,6 @@ package com.example.bunnypost.data.repository
 
 import com.example.bunnypost.data.local.UserPreferences
 import com.example.bunnypost.data.local.dao.PostDao
-import com.example.bunnypost.data.local.dao.UserDao
 import com.example.bunnypost.data.local.entity.PostEntity
 import com.example.bunnypost.data.remote.ApiService
 import com.example.bunnypost.data.remote.model.Post
@@ -18,7 +17,6 @@ import javax.inject.Inject
 class PostRepository @Inject constructor(
     private val apiService: ApiService,
     private val postDao: PostDao,
-    private val userDao: UserDao,
     private val userPreferences: UserPreferences
 ) {
 
@@ -48,10 +46,7 @@ class PostRepository @Inject constructor(
     fun getPosts(): Flow<List<PostEntity>> {
         return postDao.getAllPosts()
     }
-    
-    fun getPostById(postId: String): Flow<PostEntity?> {
-        return postDao.getPostById(postId)
-    }
+
 
     suspend fun createPost(title: String, content: String) {
         val token = userPreferences.getToken().first() ?: throw Exception("User not logged in")
@@ -65,7 +60,7 @@ class PostRepository @Inject constructor(
         if (response.success && response.data != null) {
             return response.data
         } else {
-            throw Exception(response.message ?: "Failed to get post detail")
+            throw Exception(response.message)
         }
     }
 
@@ -136,7 +131,7 @@ class PostRepository @Inject constructor(
             }
             return response
         } else {
-            throw Exception(response.message ?: "Failed to fetch posts")
+            throw Exception(response.message)
         }
     }
 

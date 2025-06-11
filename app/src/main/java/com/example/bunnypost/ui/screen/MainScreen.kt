@@ -52,7 +52,6 @@ fun MainScreen(
                     val postId = backStackEntry.arguments?.getString("id") ?: ""
                     PostDetailScreen(
                         postId = postId,
-                        onBack = { bottomNavController.popBackStack() }
                     )
                 }
                 composable("profile/{username}") { backStackEntry ->
