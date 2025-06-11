@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import com.example.bunnypost.viewmodel.AuthViewModel
 import com.example.bunnypost.viewmodel.ProfileViewModel
 import com.example.bunnypost.data.helper.Result
+import com.example.bunnypost.data.local.entity.UserEntity
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.TopAppBarDefaults
@@ -30,8 +31,10 @@ fun EditProfileScreen(
 
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
+    var originalUsername by remember { mutableStateOf("") }
+    var currentUserId by remember { mutableStateOf<String?>(null) }
+
 
     var showSnackbar by remember { mutableStateOf(false) }
     var snackbarMessage by remember { mutableStateOf("") }
@@ -43,8 +46,9 @@ fun EditProfileScreen(
             val user = (profileState as Result.Success).data
             firstName = user.firstName
             lastName = user.lastName
-            username = user.username
             bio = user.bio ?: ""
+            originalUsername = user.username
+            currentUserId = user.id
         }
     }
 
@@ -88,13 +92,13 @@ fun EditProfileScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            when (profileState) {
+            when (val state = profileState) {
                 is Result.Loading -> {
                     CircularProgressIndicator()
                     Text("Loading profile data...")
                 }
                 is Result.Error -> {
-                    Text("Error loading profile: ${(profileState as Result.Error).message}", color = MaterialTheme.colorScheme.error)
+                    Text("Error loading profile: ${(state as Result.Error).message}", color = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = { profileViewModel.fetchMyProfile() }) {
                         Text("Retry Load Profile")
@@ -116,13 +120,6 @@ fun EditProfileScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
-                        value = username,
-                        onValueChange = { username = it },
-                        label = { Text("Username") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedTextField(
                         value = bio,
                         onValueChange = { bio = it },
                         label = { Text("Bio (Optional)") },
@@ -133,10 +130,18 @@ fun EditProfileScreen(
 
                     Button(
                         onClick = {
-                            authViewModel.updateProfile(firstName, lastName, username, bio.ifEmpty { null })
+                            currentUserId?.let { userId ->
+                                authViewModel.updateProfile(
+                                    userId = userId,
+                                    firstName = firstName,
+                                    lastName = lastName,
+                                    username = originalUsername,
+                                    bio = bio.ifEmpty { null }
+                                )
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = editProfileState !is Result.Loading
+                        enabled = editProfileState !is Result.Loading && currentUserId != null
                     ) {
                         if (editProfileState is Result.Loading) {
                             CircularProgressIndicator(

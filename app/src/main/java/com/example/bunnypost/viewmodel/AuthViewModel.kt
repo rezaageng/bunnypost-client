@@ -12,12 +12,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.bunnypost.data.helper.Result
 import com.example.bunnypost.data.local.entity.UserEntity
-import com.example.bunnypost.di.SessionManager // <-- Pastikan ini diimpor
+import com.example.bunnypost.di.SessionManager
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    // TAMBAHKAN INI: Injeksi SessionManager
     val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -83,15 +82,16 @@ class AuthViewModel @Inject constructor(
     }
 
     fun updateProfile(
+        userId: String,
         firstName: String,
         lastName: String,
         username: String,
         bio: String?
     ) {
-        Log.d("AuthViewModel", "Update profile called for username: $username")
+        Log.d("AuthViewModel", "Update profile called for user ID: $userId")
         viewModelScope.launch {
             _editProfileState.value = Result.Loading
-            authRepository.updateProfile(firstName, lastName, username, bio).collect { result ->
+            authRepository.updateProfile(userId, firstName, lastName, username, bio).collect { result ->
                 _editProfileState.value = result
             }
         }

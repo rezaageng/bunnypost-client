@@ -1,38 +1,40 @@
 package com.example.bunnypost.ui.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.bunnypost.viewmodel.ProfileViewModel
-import com.example.bunnypost.data.helper.Result
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import androidx.compose.foundation.background
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.sp
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Tab
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import com.example.bunnypost.data.helper.Result
+import com.example.bunnypost.viewmodel.ProfileViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    // Terima ViewModel sebagai parameter
     profileViewModel: ProfileViewModel,
     onLogout: () -> Unit,
     onEditProfileClick: () -> Unit
 ) {
     val profileState by profileViewModel.profileState.collectAsState()
-
     var selectedTabIndex by remember { mutableStateOf(0) }
+
+    // Memastikan data selalu segar setiap kali layar ini ditampilkan
+    LaunchedEffect(Unit) {
+        profileViewModel.fetchMyProfile()
+    }
 
     Column(
         modifier = Modifier
@@ -178,7 +180,7 @@ fun ProfileScreen(
                 }
             }
             null -> {
-                // Initial state, might show a loading indicator or nothing
+                // Initial state, do nothing
             }
         }
     }

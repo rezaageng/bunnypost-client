@@ -2,7 +2,6 @@ package com.example.bunnypost.ui.screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,16 +15,17 @@ import com.example.bunnypost.viewmodel.AuthViewModel
 import com.example.bunnypost.viewmodel.PostViewModel
 import com.example.bunnypost.viewmodel.ProfileViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     authViewModel: AuthViewModel,
     onLogout: () -> Unit,
-    onEditProfileClick: () -> Unit, // <-- KOMA YANG HILANG DITAMBAHKAN DI SINI
+    onEditProfileClick: () -> Unit,
     onPostClick: (String) -> Unit
 ) {
     val bottomNavController = rememberNavController()
+    // Membuat instance ViewModel di level "induk"
     val postViewModel: PostViewModel = hiltViewModel()
+    val profileViewModel: ProfileViewModel = hiltViewModel()
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController = bottomNavController) }
@@ -46,15 +46,15 @@ fun MainScreen(
                     SearchScreen(navController = bottomNavController)
                 }
                 composable(NavigationItem.Profile.route) {
-                    val profileViewModel: ProfileViewModel = hiltViewModel()
+                    // Meneruskan instance ViewModel yang sama ke ProfileScreen
                     ProfileScreen(
-                        profileViewModel = profileViewModel,
+                        profileViewModel = profileViewModel, // Menggunakan instance dari induk
                         onLogout = {
                             authViewModel.logout {
                                 onLogout()
                             }
                         },
-                        onEditProfileClick = onEditProfileClick // Teruskan parameter ini
+                        onEditProfileClick = onEditProfileClick
                     )
                 }
                 composable("post/{id}") { backStackEntry ->

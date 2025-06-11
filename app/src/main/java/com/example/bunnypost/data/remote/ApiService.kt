@@ -1,7 +1,8 @@
 package com.example.bunnypost.data.remote
 
 import com.example.bunnypost.data.remote.model.*
-import okhttp3.Response
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.http.*
 
 interface ApiService {
@@ -26,13 +27,14 @@ interface ApiService {
         @Header("Authorization") token: String
     ): MeResponse
 
-    // DITAMBAHKAN: Endpoint untuk update profil pengguna
-    @PATCH("users/me") // Atau @PUT, sesuaikan dengan backend Anda
-    @FormUrlEncoded
+    // Diubah untuk menargetkan users/{id}
+    @Multipart
+    @PUT("users/{id}")
     suspend fun updateMyProfile(
         @Header("Authorization") token: String,
-        @FieldMap params: Map<String, String>
-    ): UserResponse // UserResponse diasumsikan sebagai tipe kembalian yang benar
+        @Path("id") userId: String,
+        @PartMap parts: Map<String, @JvmSuppressWildcards RequestBody>
+    ): UserResponse
 
     // Create new post
     @FormUrlEncoded

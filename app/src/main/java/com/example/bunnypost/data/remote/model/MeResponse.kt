@@ -14,6 +14,7 @@ data class MeResponse(
     val data: UserData
 )
 
+// DIPERBAIKI: Tambahkan semua field yang dibutuhkan
 data class UserData(
     @SerializedName("id")
     val id: String,
@@ -24,7 +25,15 @@ data class UserData(
     @SerializedName("username")
     val username: String,
 
-    @SerializedName("profilePicture") // Add this line
-    val profilePicture: String? = null // Add this line
-    // Anda bisa menambahkan properti lain jika perlu (posts, likes, dll)
+    @SerializedName("firstName")
+    val firstName: String,
+
+    @SerializedName("lastName")
+    val lastName: String,
+
+    @SerializedName("profilePicture")
+    val profilePicture: String? = null,
+
+    @SerializedName("bio")
+    val bio: String? = null
 )

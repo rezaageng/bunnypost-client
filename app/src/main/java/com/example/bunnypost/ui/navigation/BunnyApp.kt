@@ -100,29 +100,12 @@ fun BunnyApp() {
                 onEditProfileClick = {
                     navController.navigate("editProfile")
                 },
-                // DIPERBAIKI: Menambahkan parameter onPostClick yang hilang
                 onPostClick = { postId ->
                     navController.navigate("postDetail/$postId")
                 }
             )
         }
-        composable("profile") {
-            val profileViewModel: ProfileViewModel = hiltViewModel()
-            ProfileScreen(
-                profileViewModel = profileViewModel,
-                onLogout = {
-                    authViewModel.logout {
-                        navController.navigate("login") {
-                            popUpTo("profile") { inclusive = true }
-                            popUpTo("main") { inclusive = true }
-                        }
-                    }
-                },
-                onEditProfileClick = {
-                    navController.navigate("editProfile")
-                }
-            )
-        }
+
         composable("editProfile") {
             val profileViewModel: ProfileViewModel = hiltViewModel()
             EditProfileScreen(
