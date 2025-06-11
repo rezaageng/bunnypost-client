@@ -61,25 +61,20 @@ fun SearchScreen(
             0 -> {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(postResults) { post ->
-                        Row(
+                        Surface(
+                            shape = MaterialTheme.shapes.medium,
+                            tonalElevation = 2.dp,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(12.dp)
+                                .padding(horizontal = 16.dp, vertical = 4.dp)
                                 .clickable {
                                     navController.navigate("post/${post.id}")
                                 }
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                                contentDescription = "Avatar",
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .padding(end = 8.dp)
-                            )
-                            Column {
+                            Column(modifier = Modifier.padding(16.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        text = "${post.authorFirstName} ${post.authorLastName}",
+                                        text = post.title,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
                                     )
@@ -90,12 +85,15 @@ fun SearchScreen(
                                         fontSize = 14.sp
                                     )
                                 }
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(text = post.content)
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = post.content,
+                                    fontSize = 14.sp
+                                )
                             }
                         }
-                        Divider()
                     }
+
                 }
             }
 
