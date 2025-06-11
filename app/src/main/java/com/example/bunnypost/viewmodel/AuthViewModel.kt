@@ -1,5 +1,7 @@
+// Lokasi: com/example/bunnypost/viewmodel/AuthViewModel.kt
 package com.example.bunnypost.viewmodel
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -86,12 +88,13 @@ class AuthViewModel @Inject constructor(
         firstName: String,
         lastName: String,
         username: String,
-        bio: String?
+        bio: String?,
+        imageUri: Uri?
     ) {
         Log.d("AuthViewModel", "Update profile called for user ID: $userId")
         viewModelScope.launch {
             _editProfileState.value = Result.Loading
-            authRepository.updateProfile(userId, firstName, lastName, username, bio).collect { result ->
+            authRepository.updateProfile(userId, firstName, lastName, username, bio, imageUri).collect { result ->
                 _editProfileState.value = result
             }
         }

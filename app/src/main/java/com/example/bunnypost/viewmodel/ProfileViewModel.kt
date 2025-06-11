@@ -1,4 +1,3 @@
-// File: ProfileViewModel.kt (PASTIKAN KODE ANDA SEPERTI INI)
 package com.example.bunnypost.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -33,6 +32,14 @@ class ProfileViewModel @Inject constructor(
 
     init {
         fetchMyProfile()
+    }
+
+    /**
+     * Memperbarui profileState secara manual dengan data baru dari operasi lain,
+     * seperti setelah berhasil mengedit profil, untuk menghindari fetch ulang.
+     */
+    fun updateProfileStateWithNewData(updatedUser: UserEntity) {
+        _profileState.value = Result.Success(updatedUser)
     }
 
     fun fetchMyProfile() {

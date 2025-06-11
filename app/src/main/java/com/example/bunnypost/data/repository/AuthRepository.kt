@@ -1,26 +1,27 @@
+// Lokasi: com/example/bunnypost/data/repository/AuthRepository.kt
 package com.example.bunnypost.data.repository
 
+import android.content.Context
+import android.net.Uri
+import android.util.Base64
 import android.util.Log
+import com.example.bunnypost.data.helper.Result
 import com.example.bunnypost.data.local.UserPreferences
 import com.example.bunnypost.data.local.dao.UserDao
 import com.example.bunnypost.data.local.entity.UserEntity
 import com.example.bunnypost.data.remote.ApiService
+import com.example.bunnypost.data.remote.model.EditProfileRequest
 import com.example.bunnypost.data.remote.model.LoginRequest
 import com.example.bunnypost.data.remote.model.SignUpRequest
-import com.example.bunnypost.data.helper.Result
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.flow.firstOrNull
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
+// Anotasi @Inject dipindahkan ke constructor
 class AuthRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val apiService: ApiService,
     private val userPreferences: UserPreferences,
     private val userDao: UserDao
@@ -136,7 +137,8 @@ class AuthRepository @Inject constructor(
         firstName: String,
         lastName: String,
         username: String,
-        bio: String?
+        bio: String?,
+        imageUri: Uri?
     ): Flow<Result<UserEntity>> = flow {
         emit(Result.Loading)
         try {
@@ -146,15 +148,28 @@ class AuthRepository @Inject constructor(
                 return@flow
             }
 
-            val partMap = mutableMapOf<String, RequestBody>()
-            partMap["firstName"] = firstName.toRequestBody("text/plain".toMediaType())
-            partMap["lastName"] = lastName.toRequestBody("text/plain".toMediaType())
-            partMap["username"] = username.toRequestBody("text/plain".toMediaType())
-            bio?.let {
-                partMap["bio"] = it.toRequestBody("text/plain".toMediaType())
+            var imageBase64: String? = null
+            imageUri?.let {
+                val fileStream = context.contentResolver.openInputStream(it)
+                val fileBytes = fileStream?.readBytes()
+                fileStream?.close()
+
+
+
+                if (fileBytes != null) {
+                    imageBase64 = Base64.encodeToString(fileBytes, Base64.DEFAULT)
+                }
             }
 
-            val response = apiService.updateMyProfile("Bearer $token", userId, partMap)
+            val editProfileRequest = EditProfileRequest(
+                firstName = firstName,
+                lastName = lastName,
+                username = username,
+                bio = bio,
+                profilePicture = imageBase64
+            )
+
+            val response = apiService.updateMyProfile("Bearer $token", userId, editProfileRequest)
 
             if (response.success) {
                 response.data?.let { userData ->

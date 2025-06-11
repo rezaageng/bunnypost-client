@@ -1,18 +1,21 @@
 package com.example.bunnypost.data.remote.model
 
+import com.google.gson.annotations.SerializedName
+
 data class EditProfileRequest(
+    @SerializedName("firstName")
     val firstName: String,
+
+    @SerializedName("lastName")
     val lastName: String,
+
+    @SerializedName("username")
     val username: String,
-    val bio: String? // Bio bisa null
-) {
-    fun toMap(): Map<String, String> {
-        val map = mutableMapOf(
-            "firstName" to firstName,
-            "lastName" to lastName,
-            "username" to username
-        )
-        bio?.let { map["bio"] = it } // Hanya tambahkan bio jika tidak null
-        return map
-    }
-}
+
+    @SerializedName("bio")
+    val bio: String?,
+
+    // Field ini akan menampung string Base64 dari gambar
+    @SerializedName("profilePicture")
+    val profilePicture: String?
+)

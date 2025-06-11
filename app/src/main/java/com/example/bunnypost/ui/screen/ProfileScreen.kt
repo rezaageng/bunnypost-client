@@ -23,6 +23,10 @@ import coil.request.ImageRequest
 import com.example.bunnypost.data.helper.Result
 import com.example.bunnypost.data.local.entity.PostEntity
 import com.example.bunnypost.viewmodel.ProfileViewModel
+import androidx.compose.runtime.DisposableEffect // <-- TAMBAHKAN IMPORT INI
+import androidx.compose.ui.platform.LocalLifecycleOwner // <-- TAMBAHKAN IMPORT INI
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 
 @Composable
 fun ProfileScreen(
@@ -30,14 +34,22 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onEditProfileClick: () -> Unit
 ) {
-    // State di-collect di level atas, ini sudah benar
     val profileState by profileViewModel.profileState.collectAsState()
     val userPostsState by profileViewModel.userPostsState.collectAsState()
     val likedPostsState by profileViewModel.likedPostsState.collectAsState()
     var selectedTabIndex by remember { mutableStateOf(0) }
 
-    LaunchedEffect(Unit) {
-        profileViewModel.fetchMyProfile()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                profileViewModel.fetchMyProfile()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     Column(

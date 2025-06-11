@@ -1,8 +1,6 @@
 package com.example.bunnypost.data.remote
 
 import com.example.bunnypost.data.remote.model.*
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import retrofit2.http.*
 
 interface ApiService {
@@ -15,7 +13,7 @@ interface ApiService {
     ): LoginResponse
 
     // Signup
-    @FormUrlEncoded
+    @FormUrlEncoded // <-- ANOTASI INI SUDAH DIPERBAIKI
     @POST("auth/signup")
     suspend fun signup(
         @FieldMap params: Map<String, String>
@@ -27,12 +25,12 @@ interface ApiService {
         @Header("Authorization") token: String
     ): MeResponse
 
-    @Multipart
+    // Fungsi ini menggunakan @Body untuk metode Base64
     @PUT("users/{id}")
     suspend fun updateMyProfile(
         @Header("Authorization") token: String,
         @Path("id") userId: String,
-        @PartMap parts: Map<String, @JvmSuppressWildcards RequestBody>
+        @Body request: EditProfileRequest
     ): UserResponse
 
     // Create new post
@@ -51,7 +49,6 @@ interface ApiService {
         @Query("search") searchQuery: String?,
         @Query("page") page: Int,
         @Query("limit") limit: Int,
-        // Parameter authorId ditambahkan di sini
         @Query("authorId") authorId: String? = null
     ): PostsResponse
 
