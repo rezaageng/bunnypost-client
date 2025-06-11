@@ -24,6 +24,7 @@ data class Comment(
     val id: String,
     val content: String,
     val createdAt: String,
+    val author: Author,
     val authorId: String
 )
 
