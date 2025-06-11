@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.bunnypost.data.helper.Result
+import com.example.bunnypost.data.local.entity.UserEntity // Pastikan import ini ada
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
@@ -29,8 +30,21 @@ class AuthViewModel @Inject constructor(
     private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
     val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
 
+    // Tambahkan properti ini:
+    private val _loggedInUser = MutableStateFlow<UserEntity?>(null)
+    val loggedInUser: StateFlow<UserEntity?> = _loggedInUser.asStateFlow() // <-- Ini yang dibutuhkan
+
     init {
         checkLoginStatus()
+        observeLoggedInUser() // <-- Pastikan ini dipanggil
+    }
+
+    private fun observeLoggedInUser() { // <-- Pastikan fungsi ini ada
+        viewModelScope.launch {
+            authRepository.getLoggedInUser().collect { user ->
+                _loggedInUser.value = user
+            }
+        }
     }
 
     private fun checkLoginStatus() {
@@ -67,6 +81,7 @@ class AuthViewModel @Inject constructor(
             _isLoggedIn.value = false
             _loginState.value = null
             _signUpState.value = null
+            _loggedInUser.value = null // Bersihkan data pengguna saat logout
             onLogoutFinished()
         }
     }
