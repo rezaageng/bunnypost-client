@@ -1,4 +1,3 @@
-// app/src/main/java/com/example/bunnypost/ui/screen/SearchScreen.kt
 package com.example.bunnypost.ui.screen
 
 import androidx.compose.foundation.Image
@@ -19,10 +18,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.bunnypost.R
 import com.example.bunnypost.ui.viewmodel.SearchViewModel
-import androidx.compose.foundation.shape.CircleShape // Tambahkan import ini
-import androidx.compose.ui.draw.clip // Tambahkan import ini
-import androidx.compose.ui.layout.ContentScale // Tambahkan import ini
-import coil.compose.AsyncImage // Tambahkan import ini
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import androidx.compose.foundation.background
 
 @Composable
 fun SearchScreen(
@@ -69,7 +69,6 @@ fun SearchScreen(
                                     navController.navigate("post/${post.id}")
                                 }
                         ) {
-                            // Bagian ini adalah untuk posts, tidak diubah sesuai permintaan "hanya user section"
                             Image(
                                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                                 contentDescription = "Avatar",
@@ -111,28 +110,34 @@ fun SearchScreen(
                                     navController.navigate("profile/${user.username}")
                                 }
                         ) {
-                            // --- MULAI PERUBAHAN DI SINI UNTUK BAGIAN USER ---
-                            user.profilePicture?.let { imageUrl ->
+                            if (user.profilePicture.isNullOrEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(CircleShape)
+                                        .background(generateColorFromString(user.username)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    // --- PERUBAHAN DI SINI: Gunakan user.firstName ---
+                                    Text(
+                                        text = user.firstName.firstOrNull()?.uppercaseChar()?.toString() ?: "",
+                                        color = Color.White,
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    // --- AKHIR PERUBAHAN ---
+                                }
+                            } else {
                                 AsyncImage(
-                                    model = imageUrl,
+                                    model = user.profilePicture,
                                     contentDescription = "User Profile Picture",
                                     modifier = Modifier
                                         .size(48.dp)
-                                        .clip(CircleShape), // Memastikan gambar berbentuk lingkaran
-                                    contentScale = ContentScale.Crop // Memastikan gambar mengisi area tanpa distorsi
-                                )
-                            } ?: run {
-                                // Fallback jika profilePicture null
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_profile), // Gunakan ikon profil default Anda
-                                    contentDescription = "Default Avatar",
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(CircleShape) // Tetap berbentuk lingkaran
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
                                 )
                             }
-                            // --- AKHIR PERUBAHAN DI SINI UNTUK BAGIAN USER ---
-                            Spacer(modifier = Modifier.width(8.dp)) // Tambahkan spasi
+                            Spacer(modifier = Modifier.width(8.dp))
                             Column {
                                 Text(
                                     text = "${user.firstName} ${user.lastName}",
@@ -152,4 +157,9 @@ fun SearchScreen(
             }
         }
     }
+}
+
+private fun generateColorFromString(input: String): Color {
+    val hue = (input.hashCode() % 360).toFloat()
+    return Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, 0.5f, 0.9f)))
 }
