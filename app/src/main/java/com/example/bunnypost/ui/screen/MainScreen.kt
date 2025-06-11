@@ -14,6 +14,11 @@ import com.example.bunnypost.ui.navigation.BottomNavigationBar
 import com.example.bunnypost.ui.navigation.NavigationItem
 import com.example.bunnypost.viewmodel.AuthViewModel
 import com.example.bunnypost.viewmodel.PostViewModel
+import androidx.compose.material3.TopAppBar // <-- Tambahkan ini
+import androidx.compose.material3.Text // <-- Tambahkan ini
+import androidx.compose.material3.TopAppBarDefaults // <-- Tambahkan ini
+import androidx.compose.ui.graphics.Color // <-- Tambahkan ini
+import androidx.compose.material3.MaterialTheme // <-- Tambahkan ini
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +31,21 @@ fun MainScreen(
     val postViewModel: PostViewModel = hiltViewModel()
 
     Scaffold(
+        // Tambahkan TopAppBar di sini
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Bunny Post", // Nama aplikasi Anda
+                        color = Color.White, // Sesuaikan warna teks
+                        style = MaterialTheme.typography.titleLarge // Sesuaikan gaya teks
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary // Warna background header
+                )
+            )
+        },
         bottomBar = { BottomNavigationBar(navController = bottomNavController) }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
