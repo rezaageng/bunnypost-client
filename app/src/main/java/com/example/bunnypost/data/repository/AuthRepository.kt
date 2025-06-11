@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-// Anotasi @Inject dipindahkan ke constructor
 class AuthRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val apiService: ApiService,
@@ -149,15 +148,26 @@ class AuthRepository @Inject constructor(
             }
 
             var imageBase64: String? = null
-            imageUri?.let {
-                val fileStream = context.contentResolver.openInputStream(it)
-                val fileBytes = fileStream?.readBytes()
-                fileStream?.close()
-
-
-
-                if (fileBytes != null) {
-                    imageBase64 = Base64.encodeToString(fileBytes, Base64.DEFAULT)
+            imageUri?.let { uri ->
+                try {
+                    context.contentResolver.openInputStream(uri)?.use { fileStream ->
+                        val fileBytes = fileStream.readBytes()
+                        if (fileBytes.isNotEmpty()) {
+                            imageBase64 = Base64.encodeToString(fileBytes, Base64.DEFAULT)
+                            Log.d("AuthRepository", "Image Base64 generated. Length: ${imageBase64?.length ?: 0}")
+                            // Anda bisa log sebagian kecil dari string Base64 untuk memastikan isinya
+                            // Log.d("AuthRepository", "Base64 snippet: ${imageBase64?.take(100)}...")
+                        } else {
+                            Log.e("AuthRepository", "fileBytes is empty for Uri: $uri")
+                        }
+                    } ?: run {
+                        Log.e("AuthRepository", "Failed to open InputStream for Uri: $uri")
+                    }
+                } catch (e: Exception) {
+                    Log.e("AuthRepository", "Error converting image to Base64: ${e.message}", e)
+                    // Jika ada error di sini, mungkin URI tidak valid atau file rusak
+                    emit(Result.Error("Failed to process image: ${e.message}"))
+                    return@flow // Hentikan flow jika gambar gagal diproses
                 }
             }
 
@@ -166,33 +176,44 @@ class AuthRepository @Inject constructor(
                 lastName = lastName,
                 username = username,
                 bio = bio,
-                profilePicture = imageBase64
+                profilePicture = imageBase64 // Ini akan menjadi null jika tidak ada gambar atau gagal dikonversi
             )
 
-            val response = apiService.updateMyProfile("Bearer $token", userId, editProfileRequest)
+            // Pastikan Anda memanggil .toMap() di sini!
+            val requestMap = editProfileRequest.toMap()
+            Log.d("AuthRepository", "Sending update profile request with map: $requestMap")
+
+            val response = apiService.updateMyProfile("Bearer $token", userId, requestMap)
 
             if (response.success) {
                 response.data?.let { userData ->
+                    Log.d("AuthRepository", "Profile update successful. Received userData: $userData")
                     val updatedUserEntity = UserEntity(
                         id = userData.id,
                         email = userData.email,
                         username = userData.username,
                         firstName = userData.firstName,
                         lastName = userData.lastName,
-                        profilePicture = userData.profilePicture,
+                        profilePicture = userData.profilePicture, // Periksa apakah ini URL gambar baru
                         bio = userData.bio
                     )
                     withContext(Dispatchers.IO) {
                         userDao.insertUser(updatedUserEntity)
+                        Log.d("AuthRepository", "User data updated in local DB: $updatedUserEntity")
                     }
                     emit(Result.Success(updatedUserEntity))
                 } ?: run {
-                    emit(Result.Error(response.message ?: "User data is null in update response."))
+                    val errorMessage = response.message ?: "User data is null in update response."
+                    Log.e("AuthRepository", errorMessage)
+                    emit(Result.Error(errorMessage))
                 }
             } else {
-                emit(Result.Error(response.message ?: "Failed to update profile via API."))
+                val errorMessage = response.message ?: "Failed to update profile via API."
+                Log.e("AuthRepository", "API response unsuccessful: $errorMessage")
+                emit(Result.Error(errorMessage))
             }
         } catch (e: Exception) {
+            Log.e("AuthRepository", "Network error occurred during profile update: ${e.message}", e)
             emit(Result.Error(e.message ?: "Network error occurred during profile update."))
         }
     }.flowOn(Dispatchers.IO)

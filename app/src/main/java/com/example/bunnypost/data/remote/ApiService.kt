@@ -1,3 +1,4 @@
+// Lokasi: com/example/bunnypost/data/remote/ApiService.kt
 package com.example.bunnypost.data.remote
 
 import com.example.bunnypost.data.remote.model.*
@@ -13,7 +14,7 @@ interface ApiService {
     ): LoginResponse
 
     // Signup
-    @FormUrlEncoded // <-- ANOTASI INI SUDAH DIPERBAIKI
+    @FormUrlEncoded
     @POST("auth/signup")
     suspend fun signup(
         @FieldMap params: Map<String, String>
@@ -25,12 +26,14 @@ interface ApiService {
         @Header("Authorization") token: String
     ): MeResponse
 
-    // Fungsi ini menggunakan @Body untuk metode Base64
+    // Update user's profile (image is converted to Base64 string)
+    // Menggunakan @FormUrlEncoded dan @FieldMap untuk mengirim data form, termasuk Base64
+    @FormUrlEncoded
     @PUT("users/{id}")
     suspend fun updateMyProfile(
         @Header("Authorization") token: String,
         @Path("id") userId: String,
-        @Body request: EditProfileRequest
+        @FieldMap fields: Map<String, String> // Menerima Map<String, String> dari toMap()
     ): UserResponse
 
     // Create new post
@@ -81,9 +84,23 @@ interface ApiService {
         @Field("content") content: String
     )
 
-    @DELETE("likes/{id}")
+    // ⛔ Unlike a post (DIUBAH)
+    @DELETE("likes") // URL diubah ke /api/likes
     suspend fun unlikePost(
         @Header("Authorization") token: String,
-        @Path("id") likeId: String
+        @Query("postId") postId: String // postId dikirim sebagai query parameter
     )
+
+    // Delete a post
+    @DELETE("posts/{id}")
+    suspend fun deletePost(
+        @Header("Authorization") token: String,
+        @Path("id") postId: String
+    )
+
+    @GET("posts/liked")
+    suspend fun getLikedPosts(
+        @Header("Authorization") token: String,
+        @Query("userId") userId: String? = null
+    ): PostsResponse
 }
