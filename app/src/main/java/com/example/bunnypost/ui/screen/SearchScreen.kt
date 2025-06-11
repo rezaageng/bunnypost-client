@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/bunnypost/ui/screen/SearchScreen.kt
 package com.example.bunnypost.ui.screen
 
 import androidx.compose.foundation.Image
@@ -18,6 +19,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.bunnypost.R
 import com.example.bunnypost.ui.viewmodel.SearchViewModel
+import androidx.compose.foundation.shape.CircleShape // Tambahkan import ini
+import androidx.compose.ui.draw.clip // Tambahkan import ini
+import androidx.compose.ui.layout.ContentScale // Tambahkan import ini
+import coil.compose.AsyncImage // Tambahkan import ini
 
 @Composable
 fun SearchScreen(
@@ -64,6 +69,7 @@ fun SearchScreen(
                                     navController.navigate("post/${post.id}")
                                 }
                         ) {
+                            // Bagian ini adalah untuk posts, tidak diubah sesuai permintaan "hanya user section"
                             Image(
                                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                                 contentDescription = "Avatar",
@@ -105,13 +111,28 @@ fun SearchScreen(
                                     navController.navigate("profile/${user.username}")
                                 }
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                                contentDescription = "Avatar",
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .padding(end = 8.dp)
-                            )
+                            // --- MULAI PERUBAHAN DI SINI UNTUK BAGIAN USER ---
+                            user.profilePicture?.let { imageUrl ->
+                                AsyncImage(
+                                    model = imageUrl,
+                                    contentDescription = "User Profile Picture",
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(CircleShape), // Memastikan gambar berbentuk lingkaran
+                                    contentScale = ContentScale.Crop // Memastikan gambar mengisi area tanpa distorsi
+                                )
+                            } ?: run {
+                                // Fallback jika profilePicture null
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_profile), // Gunakan ikon profil default Anda
+                                    contentDescription = "Default Avatar",
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(CircleShape) // Tetap berbentuk lingkaran
+                                )
+                            }
+                            // --- AKHIR PERUBAHAN DI SINI UNTUK BAGIAN USER ---
+                            Spacer(modifier = Modifier.width(8.dp)) // Tambahkan spasi
                             Column {
                                 Text(
                                     text = "${user.firstName} ${user.lastName}",
