@@ -1,8 +1,18 @@
 package com.example.bunnypost.data.local
 
+import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.example.bunnypost.data.local.dao.PostDao
 import com.example.bunnypost.data.local.dao.UserDao
+import com.example.bunnypost.data.local.entity.PostEntity
+import com.example.bunnypost.data.local.entity.UserEntity
 
-abstract class BunnyDatabase: RoomDatabase() {
+@Database(
+    entities = [UserEntity::class, PostEntity::class],
+    version = 3,
+    exportSchema = false
+)
+abstract class BunnyDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
+    abstract fun postDao(): PostDao
 }
