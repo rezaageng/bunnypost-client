@@ -2,6 +2,15 @@
 package com.example.bunnypost.data.remote
 
 import com.example.bunnypost.data.remote.model.*
+import com.example.bunnypost.data.remote.model.LoginResponse
+import com.example.bunnypost.data.remote.model.Post
+import com.example.bunnypost.data.remote.model.PostDetailResponse
+import com.example.bunnypost.data.remote.model.PostsResponse
+import com.example.bunnypost.data.remote.model.SignUpResponse
+import com.example.bunnypost.data.remote.model.UserListResponse
+import com.example.bunnypost.data.remote.model.MeResponse
+//import okhttp3.Response
+import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiService {
@@ -82,7 +91,7 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Field("postId") postId: String,
         @Field("content") content: String
-    )
+    ): Response<Unit> // <-- TAMBAHKAN BAGIAN INI
 
     // ⛔ Unlike a post (DIUBAH)
     @DELETE("likes") // URL diubah ke /api/likes

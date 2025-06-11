@@ -85,9 +85,19 @@ class PostRepository @Inject constructor(
         apiService.unlikePost("Bearer $token", like.id)
     }
 
-    suspend fun addComment(postId: String, content: String) {
-        val token = userPreferences.getToken().first() ?: throw Exception("User not logged in")
-        apiService.addComment("Bearer $token", postId, content)
+    suspend fun addComment(postId: String, content: String): Result<Unit> {
+        return try {
+            val token = userPreferences.getToken().firstOrNull() ?: throw Exception("Token tidak ditemukan")
+            // Pastikan ApiService Anda mengembalikan Response<Unit> untuk fungsi ini
+            val response = apiService.addComment("Bearer $token", postId, content)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Gagal mengirim komentar: Error ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     suspend fun fetchPosts(page: Int): PostsResponse {

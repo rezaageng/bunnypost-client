@@ -35,6 +35,17 @@ class PostViewModel @Inject constructor(
     private val _postDetail = MutableStateFlow<Post?>(null)
     val postDetail: StateFlow<Post?> = _postDetail.asStateFlow()
 
+    private val _commentText = MutableStateFlow("")
+    val commentText: StateFlow<String> = _commentText.asStateFlow()
+
+    private val _isCommenting = MutableStateFlow(false)
+    val isCommenting: StateFlow<Boolean> = _isCommenting.asStateFlow()
+
+    // Fungsi untuk di-trigger dari UI
+    fun onCommentTextChanged(newText: String) {
+        _commentText.value = newText
+    }
+
     val isLikedByCurrentUser: StateFlow<Boolean> =
         combine(postDetail, userPreferences.getUserId()) { post, currentUserId ->
             if (post == null || currentUserId == null) {
@@ -223,33 +234,26 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun addComment(postId: String, content: String) {
-        if (content.isBlank()) return
-
-        val currentPost = _postDetail.value ?: return
-        val currentAuthorId = currentUserId.value ?: return
-
-        val optimisticCommentId = "temp_comment_${System.currentTimeMillis()}"
-        val optimisticComment = com.example.bunnypost.data.remote.model.Comment(
-            id = optimisticCommentId,
-            content = content,
-            createdAt = "...",
-            authorId = currentAuthorId
-        )
-
-        _postDetail.value = currentPost.copy(
-            comments = currentPost.comments + optimisticComment
-        )
+    fun addComment(postId: String) {
+        val commentContent = _commentText.value.trim()
+        if (commentContent.isBlank()) return
 
         viewModelScope.launch {
+            _isCommenting.value = true
+            _error.value = null // Bersihkan error sebelumnya
             try {
-                postRepository.addComment(postId, content)
-                getPostDetail(postId)
+                val result = postRepository.addComment(postId, commentContent)
+
+                result.onSuccess {
+                    _commentText.value = "" // Kosongkan text field setelah berhasil
+                    getPostDetail(postId) // Refresh data untuk menampilkan komentar baru
+                }.onFailure { exception ->
+                    _error.value = exception.message ?: "Terjadi kesalahan"
+                }
             } catch (e: Exception) {
-                _error.value = "Gagal menambahkan komentar."
-                _postDetail.value = currentPost.copy(
-                    comments = currentPost.comments.filter { it.id != optimisticCommentId }
-                )
+                _error.value = e.message
+            } finally {
+                _isCommenting.value = false // Pastikan ini selalu dijalankan
             }
         }
     }
