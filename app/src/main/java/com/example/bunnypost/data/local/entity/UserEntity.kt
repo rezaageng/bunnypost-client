@@ -12,4 +12,5 @@ data class UserEntity (
     val firstName: String,
     val lastName: String,
     val profilePicture: String? = null,
+    val bio: String? = null // Tambahkan properti bio di sini
 )

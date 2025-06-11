@@ -12,7 +12,6 @@ import com.example.bunnypost.data.repository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
@@ -51,6 +50,7 @@ class PostViewModel @Inject constructor(
         null
     )
 
+    // DIPERBAIKI: Typo 'statein' diubah menjadi 'stateIn'
     val currentUsername: StateFlow<String?> = userPreferences.getUsername().stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
@@ -118,11 +118,12 @@ class PostViewModel @Inject constructor(
             id = optimisticPostId,
             title = postTitle,
             content = postContent,
-            createdAt = "...",
-            authorId = currentUserId.value ?: "unknown_user_id",
+            timestamp = System.currentTimeMillis(),
+            userId = currentUserId.value ?: "unknown_user_id",
             authorUsername = currentUsername.value ?: "Unknown User",
             authorFirstName = "Current",
             authorLastName = "User",
+            profilePicture = null,
             likesCount = 0,
             commentsCount = 0,
             isLiked = false
@@ -137,7 +138,6 @@ class PostViewModel @Inject constructor(
             _error.value = null
             try {
                 postRepository.createPost(postTitle, postContent)
-                refreshPosts()
             } catch (e: Exception) {
                 _error.value = "Gagal memposting: ${e.message}"
                 _postListState.value = _postListState.value.filter { it.id != optimisticPostId }
@@ -165,12 +165,14 @@ class PostViewModel @Inject constructor(
             val isCurrentlyLiked = isLikedByCurrentUser.value
 
             try {
+                // Panggil API terlebih dahulu
                 if (isCurrentlyLiked) {
                     postRepository.unlikePost(postId)
                 } else {
                     postRepository.likePost(postId)
                 }
 
+                // Update UI secara optimis setelah API dipanggil
                 val currentUserId = userPreferences.getUserId().first()
                 if (currentUserId == null) {
                     _error.value = "Tidak bisa memproses like, user ID tidak ditemukan."
@@ -180,10 +182,7 @@ class PostViewModel @Inject constructor(
                 val mutableLikes = originalPost.likes.toMutableList()
 
                 if (isCurrentlyLiked) {
-                    val indexToRemove = mutableLikes.indexOfFirst { it.authorId == currentUserId }
-                    if (indexToRemove != -1) {
-                        mutableLikes.removeAt(indexToRemove)
-                    }
+                    mutableLikes.removeAll { it.authorId == currentUserId }
                 } else {
                     mutableLikes.add(
                         com.example.bunnypost.data.remote.model.Like(
@@ -192,7 +191,6 @@ class PostViewModel @Inject constructor(
                         )
                     )
                 }
-
                 _postDetail.value = originalPost.copy(likes = mutableLikes)
 
             } catch (e: Exception) {
@@ -200,10 +198,17 @@ class PostViewModel @Inject constructor(
             }
         }
     }
+
     fun toggleLikeOnList(postId: String) {
         viewModelScope.launch {
             val postToUpdate = _postListState.value.find { it.id == postId } ?: return@launch
             val isCurrentlyLiked = postToUpdate.isLiked
+
+            val updatedEntity = postToUpdate.copy(
+                isLiked = !isCurrentlyLiked,
+                likesCount = if (isCurrentlyLiked) postToUpdate.likesCount - 1 else postToUpdate.likesCount + 1
+            )
+            postRepository.updatePostInDb(updatedEntity)
 
             try {
                 if (isCurrentlyLiked) {
@@ -211,16 +216,9 @@ class PostViewModel @Inject constructor(
                 } else {
                     postRepository.likePost(postId)
                 }
-
-                val updatedEntity = postToUpdate.copy(
-                    isLiked = !isCurrentlyLiked,
-                    likesCount = if (isCurrentlyLiked) postToUpdate.likesCount - 1 else postToUpdate.likesCount + 1
-                )
-
-                postRepository.updatePostInDb(updatedEntity)
-
             } catch (e: Exception) {
                 _error.value = "Gagal memperbarui like: ${e.message}"
+                postRepository.updatePostInDb(postToUpdate)
             }
         }
     }
@@ -229,13 +227,14 @@ class PostViewModel @Inject constructor(
         if (content.isBlank()) return
 
         val currentPost = _postDetail.value ?: return
+        val currentAuthorId = currentUserId.value ?: return
 
         val optimisticCommentId = "temp_comment_${System.currentTimeMillis()}"
         val optimisticComment = com.example.bunnypost.data.remote.model.Comment(
             id = optimisticCommentId,
             content = content,
             createdAt = "...",
-            authorId = currentUserId.value ?: "current_user_id" // Gunakan ID pengguna saat ini
+            authorId = currentAuthorId
         )
 
         _postDetail.value = currentPost.copy(

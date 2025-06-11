@@ -1,5 +1,5 @@
 [versions]
-activityComposeVersion = "1.8.2"
+activityComposeVersion = "1.8.2" # Biarkan ini
 accompanist = "0.32.0"
 agp = "8.10.1"
 coilComposeVersion = "2.6.0"
@@ -14,7 +14,7 @@ junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 lifecycleRuntimeKtx = "2.6.1"
-activityCompose = "1.8.0"
+activityCompose = "1.8.2" # Ubah ini agar sama dengan activityComposeVersion
 composeBom = "2024.09.00"
 lifecycleViewmodelCompose = "2.9.1"
 loggingInterceptor = "4.11.0"
@@ -23,8 +23,8 @@ material3 = "1.2.0"
 materialIconsExtended = "1.7.8"
 navigationCompose = "2.7.6"
 retrofit = "2.9.0"
-roomCompiler = "2.6.1"
-roomKtx = "2.6.1"
+roomCompiler = "2.7.1" # Ubah dari 2.6.1
+roomKtx = "2.7.1"      # Ubah dari 2.6.1
 roomRuntime = "2.7.1"
 ui = "1.8.2"
 uiGraphics = "1.6.0"

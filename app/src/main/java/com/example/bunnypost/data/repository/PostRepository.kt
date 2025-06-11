@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.firstOrNull
+import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.inject.Inject
 
 class PostRepository @Inject constructor(
@@ -29,11 +31,15 @@ class PostRepository @Inject constructor(
                     id = post.id,
                     title = post.title,
                     content = post.content,
-                    createdAt = post.createdAt,
-                    authorId = post.author.id,
+                    timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(post.createdAt)?.time ?: 0L,
+                    userId = post.author.id,
                     authorUsername = post.author.username,
                     authorFirstName = post.author.firstName,
-                    authorLastName = post.author.lastName
+                    authorLastName = post.author.lastName,
+                    profilePicture = post.author.profilePicture,
+                    likesCount = post.likes.size,
+                    commentsCount = post.comments.size,
+                    isLiked = false // isLiked status needs more context in search, default to false
                 )
             }
             emit(posts)
@@ -42,11 +48,9 @@ class PostRepository @Inject constructor(
         }
     }
 
-
     fun getPosts(): Flow<List<PostEntity>> {
         return postDao.getAllPosts()
     }
-
 
     suspend fun createPost(title: String, content: String) {
         val token = userPreferences.getToken().first() ?: throw Exception("User not logged in")
@@ -93,7 +97,6 @@ class PostRepository @Inject constructor(
 
     suspend fun fetchPosts(page: Int): PostsResponse {
         val token = userPreferences.getToken().first() ?: throw Exception("User not logged in")
-
         val userId = userPreferences.getUserId().firstOrNull()
 
         val response = apiService.getPosts(
@@ -112,12 +115,12 @@ class PostRepository @Inject constructor(
                     id = post.id,
                     title = post.title,
                     content = post.content,
-                    createdAt = post.createdAt,
-                    authorId = post.author.id,
+                    timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).parse(post.createdAt)?.time ?: 0L,
+                    userId = post.author.id,
                     authorUsername = post.author.username,
                     authorFirstName = post.author.firstName,
                     authorLastName = post.author.lastName,
-                    profilePicture = post.author.profilePicture, // Tambahkan baris ini
+                    profilePicture = post.author.profilePicture,
                     likesCount = post.likes.size,
                     commentsCount = post.comments.size,
                     isLiked = isLikedByUser

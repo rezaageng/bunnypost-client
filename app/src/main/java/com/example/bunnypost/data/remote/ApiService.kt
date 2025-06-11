@@ -1,38 +1,40 @@
 package com.example.bunnypost.data.remote
 
 import com.example.bunnypost.data.remote.model.*
-import com.example.bunnypost.data.remote.model.LoginResponse
-import com.example.bunnypost.data.remote.model.Post
-import com.example.bunnypost.data.remote.model.PostDetailResponse
-import com.example.bunnypost.data.remote.model.PostsResponse
-import com.example.bunnypost.data.remote.model.SignUpResponse
-import com.example.bunnypost.data.remote.model.UserListResponse
-import com.example.bunnypost.data.remote.model.MeResponse
 import okhttp3.Response
 import retrofit2.http.*
 
 interface ApiService {
 
-    // 🔐 Login
+    // Login
     @FormUrlEncoded
     @POST("auth/signin")
     suspend fun login(
         @FieldMap params: Map<String, String>
     ): LoginResponse
 
-    // 🔐 Signup
+    // Signup
     @FormUrlEncoded
     @POST("auth/signup")
     suspend fun signup(
         @FieldMap params: Map<String, String>
     ): SignUpResponse
 
+    // Get user's own profile
     @GET("users/me")
     suspend fun getMe(
         @Header("Authorization") token: String
     ): MeResponse
 
-    // 📝 Create new post
+    // DITAMBAHKAN: Endpoint untuk update profil pengguna
+    @PATCH("users/me") // Atau @PUT, sesuaikan dengan backend Anda
+    @FormUrlEncoded
+    suspend fun updateMyProfile(
+        @Header("Authorization") token: String,
+        @FieldMap params: Map<String, String>
+    ): UserResponse // UserResponse diasumsikan sebagai tipe kembalian yang benar
+
+    // Create new post
     @FormUrlEncoded
     @POST("posts")
     suspend fun createPost(
@@ -41,7 +43,7 @@ interface ApiService {
         @Field("content") content: String
     )
 
-    // 📥 Get all posts (paginated & optional search)
+    // Get all posts (paginated & optional search)
     @GET("posts")
     suspend fun getPosts(
         @Header("Authorization") token: String,
@@ -62,17 +64,17 @@ interface ApiService {
         @Path("id") postId: String
     ): PostDetailResponse
 
-    // ❤️ Like a post (DIUBAH)
+    // Like a post
     @FormUrlEncoded
-    @POST("likes") // URL diubah ke /api/likes
+    @POST("likes")
     suspend fun likePost(
         @Header("Authorization") token: String,
-        @Field("postId") postId: String // postId dikirim sebagai field di body
+        @Field("postId") postId: String
     )
 
-    // 💬 Add comment to post (DIUBAH)
+    // Add comment to post
     @FormUrlEncoded
-    @POST("comments") // URL diubah ke /api/comments
+    @POST("comments")
     suspend fun addComment(
         @Header("Authorization") token: String,
         @Field("postId") postId: String,

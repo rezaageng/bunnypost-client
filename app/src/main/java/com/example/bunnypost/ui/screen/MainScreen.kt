@@ -14,17 +14,22 @@ import com.example.bunnypost.ui.navigation.BottomNavigationBar
 import com.example.bunnypost.ui.navigation.NavigationItem
 import com.example.bunnypost.viewmodel.AuthViewModel
 import com.example.bunnypost.viewmodel.PostViewModel
+
 import androidx.compose.material3.TopAppBar // <-- Tambahkan ini
 import androidx.compose.material3.Text // <-- Tambahkan ini
 import androidx.compose.material3.TopAppBarDefaults // <-- Tambahkan ini
 import androidx.compose.ui.graphics.Color // <-- Tambahkan ini
 import androidx.compose.material3.MaterialTheme // <-- Tambahkan ini
 
+import com.example.bunnypost.viewmodel.ProfileViewModel
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     authViewModel: AuthViewModel,
     onLogout: () -> Unit,
+    onEditProfileClick: () -> Unit, // <-- KOMA YANG HILANG DITAMBAHKAN DI SINI
     onPostClick: (String) -> Unit
 ) {
     val bottomNavController = rememberNavController()
@@ -64,9 +69,16 @@ fun MainScreen(
                     SearchScreen(navController = bottomNavController)
                 }
                 composable(NavigationItem.Profile.route) {
-                    ProfileScreen(onLogout = {
-                        authViewModel.logout(onLogout)
-                    })
+                    val profileViewModel: ProfileViewModel = hiltViewModel()
+                    ProfileScreen(
+                        profileViewModel = profileViewModel,
+                        onLogout = {
+                            authViewModel.logout {
+                                onLogout()
+                            }
+                        },
+                        onEditProfileClick = onEditProfileClick // Teruskan parameter ini
+                    )
                 }
                 composable("post/{id}") { backStackEntry ->
                     val postId = backStackEntry.arguments?.getString("id") ?: ""
