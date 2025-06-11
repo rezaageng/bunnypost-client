@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
+// Deklarasikan instance DataStore di tingkat atas file (hanya satu deklarasi)
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 
 @Singleton
 class UserPreferences @Inject constructor(@ApplicationContext private val context: Context) {
@@ -20,8 +21,11 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
     // Kunci untuk menyimpan token otentikasi
     private val userTokenKey = stringPreferencesKey("user_token")
 
-    // DITAMBAHKAN: Kunci baru untuk menyimpan ID pengguna
+    // Kunci untuk menyimpan ID pengguna
     private val userIdKey = stringPreferencesKey("user_id")
+
+    // Kunci baru untuk menyimpan username
+    private val usernameKey = stringPreferencesKey("username") // Tambahkan baris ini
 
     suspend fun saveUserToken(token: String) {
         context.dataStore.edit { preferences ->
@@ -35,25 +39,36 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
         }
     }
 
-    // DITAMBAHKAN: Fungsi untuk menyimpan ID pengguna
     suspend fun saveUserId(userId: String) {
         context.dataStore.edit { preferences ->
             preferences[userIdKey] = userId
         }
     }
 
-    // DITAMBAHKAN: Fungsi untuk mengambil ID pengguna
     fun getUserId(): Flow<String?> {
         return context.dataStore.data.map { preferences ->
             preferences[userIdKey]
         }
     }
 
-    // DIPERBARUI: Fungsi clear untuk menghapus semua data user saat logout
+    suspend fun saveUsername(username: String) { // Tambahkan fungsi ini
+        context.dataStore.edit { preferences ->
+            preferences[usernameKey] = username
+        }
+    }
+
+    fun getUsername(): Flow<String?> { // Tambahkan fungsi ini
+        return context.dataStore.data.map { preferences ->
+            preferences[usernameKey]
+        }
+    }
+
+    // Fungsi clear untuk menghapus semua data user saat logout
     suspend fun clearUserData() {
         context.dataStore.edit { preferences ->
             preferences.remove(userTokenKey)
-            preferences.remove(userIdKey) // Juga hapus userId
+            preferences.remove(userIdKey)
+            preferences.remove(usernameKey) // Juga hapus username
         }
     }
 }

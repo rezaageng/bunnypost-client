@@ -21,7 +21,6 @@ class PostViewModel @Inject constructor(
     private val userPreferences: UserPreferences
 ) : ViewModel() {
 
-    // Versi lokal agar bisa dimodifikasi tanpa sentuh DAO
     private val _postListState = MutableStateFlow<List<PostEntity>>(emptyList())
     val posts: StateFlow<List<PostEntity>> = _postListState.asStateFlow()
 
@@ -46,6 +45,18 @@ class PostViewModel @Inject constructor(
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val currentUserId: StateFlow<String?> = userPreferences.getUserId().stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        null
+    )
+
+    val currentUsername: StateFlow<String?> = userPreferences.getUsername().stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        null
+    )
+
     var title by mutableStateOf("")
     var content by mutableStateOf("")
 
@@ -54,7 +65,6 @@ class PostViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            // Listen dari database lokal (DAO) ke _postListState
             postRepository.getPosts().collect {
                 _postListState.value = it
             }
@@ -97,48 +107,39 @@ class PostViewModel @Inject constructor(
     }
 
     fun submitPost() {
-        // Simpan title dan content sebelum di-reset
         val postTitle = title
         val postContent = content
 
         if (postTitle.isBlank() || postContent.isBlank()) return
 
-        // Buat ID sementara untuk post optimistis
         val optimisticPostId = "temp_${System.currentTimeMillis()}"
 
-        // Buat entitas sementara
-        // Anda mungkin perlu mengambil data author dari UserPreferences
         val optimisticPost = PostEntity(
             id = optimisticPostId,
             title = postTitle,
             content = postContent,
-            createdAt = "...", // Placeholder
-            authorId = "current_user_id", // Placeholder, perlu data user
-            authorUsername = "current_user", // Placeholder
-            authorFirstName = "Current", // Placeholder
-            authorLastName = "User", // Placeholder
+            createdAt = "...",
+            authorId = currentUserId.value ?: "unknown_user_id",
+            authorUsername = currentUsername.value ?: "Unknown User",
+            authorFirstName = "Current",
+            authorLastName = "User",
             likesCount = 0,
             commentsCount = 0,
             isLiked = false
         )
 
-        // Langsung tambahkan ke state list di posisi paling atas
         _postListState.value = listOf(optimisticPost) + _postListState.value
 
-        // Reset field input
         title = ""
         content = ""
 
         viewModelScope.launch {
             _error.value = null
             try {
-                // Panggil repository untuk membuat post di server
                 postRepository.createPost(postTitle, postContent)
-                // Setelah berhasil, refresh seluruh list untuk mendapatkan data asli
                 refreshPosts()
             } catch (e: Exception) {
                 _error.value = "Gagal memposting: ${e.message}"
-                // Jika gagal, hapus post sementara dari list
                 _postListState.value = _postListState.value.filter { it.id != optimisticPostId }
             }
         }
@@ -164,33 +165,26 @@ class PostViewModel @Inject constructor(
             val isCurrentlyLiked = isLikedByCurrentUser.value
 
             try {
-                // 1. Lakukan aksi ke server seperti biasa
                 if (isCurrentlyLiked) {
                     postRepository.unlikePost(postId)
                 } else {
                     postRepository.likePost(postId)
                 }
 
-                // 2. KELOLA STATE SECARA MANUAL
                 val currentUserId = userPreferences.getUserId().first()
                 if (currentUserId == null) {
                     _error.value = "Tidak bisa memproses like, user ID tidak ditemukan."
                     return@launch
                 }
 
-                // Salin daftar 'likes' ke dalam list yang bisa diubah (mutable)
                 val mutableLikes = originalPost.likes.toMutableList()
 
-                // 3. --- INI ADALAH PERBAIKANNYA ---
                 if (isCurrentlyLiked) {
-                    // Jika tadinya 'liked', cari indeks dari 'like' PERTAMA yang cocok
                     val indexToRemove = mutableLikes.indexOfFirst { it.authorId == currentUserId }
-                    // Jika ditemukan (indeksnya bukan -1), HAPUS SATU saja dari daftar
                     if (indexToRemove != -1) {
                         mutableLikes.removeAt(indexToRemove)
                     }
                 } else {
-                    // Jika tadinya 'not liked', tambahkan 'like' baru (logika ini sudah benar)
                     mutableLikes.add(
                         com.example.bunnypost.data.remote.model.Like(
                             id = "temp-like-${System.currentTimeMillis()}",
@@ -199,7 +193,6 @@ class PostViewModel @Inject constructor(
                     )
                 }
 
-                // 4. Update state _postDetail dengan daftar 'likes' yang sudah dimodifikasi
                 _postDetail.value = originalPost.copy(likes = mutableLikes)
 
             } catch (e: Exception) {
@@ -209,31 +202,25 @@ class PostViewModel @Inject constructor(
     }
     fun toggleLikeOnList(postId: String) {
         viewModelScope.launch {
-            // 1. Ambil postingan yang akan diubah dari state saat ini
             val postToUpdate = _postListState.value.find { it.id == postId } ?: return@launch
             val isCurrentlyLiked = postToUpdate.isLiked
 
             try {
-                // 2. Lakukan aksi ke server seperti biasa
                 if (isCurrentlyLiked) {
                     postRepository.unlikePost(postId)
                 } else {
                     postRepository.likePost(postId)
                 }
 
-                // 3. Buat entitas post yang BARU dengan data yang sudah diupdate
                 val updatedEntity = postToUpdate.copy(
                     isLiked = !isCurrentlyLiked,
                     likesCount = if (isCurrentlyLiked) postToUpdate.likesCount - 1 else postToUpdate.likesCount + 1
                 )
 
-                // 4. Simpan perubahan ini ke database lokal (INI KUNCINYA)
                 postRepository.updatePostInDb(updatedEntity)
 
             } catch (e: Exception) {
                 _error.value = "Gagal memperbarui like: ${e.message}"
-                // Jika gagal, kita tidak perlu melakukan apa-apa. Tampilan tidak akan berubah
-                // karena kita tidak pernah mengubahnya secara manual.
             }
         }
     }
@@ -243,16 +230,14 @@ class PostViewModel @Inject constructor(
 
         val currentPost = _postDetail.value ?: return
 
-        // Buat komentar sementara
         val optimisticCommentId = "temp_comment_${System.currentTimeMillis()}"
         val optimisticComment = com.example.bunnypost.data.remote.model.Comment(
             id = optimisticCommentId,
             content = content,
-            createdAt = "...", // Placeholder
-            authorId = "current_user_id" // Placeholder, perlu data user
+            createdAt = "...",
+            authorId = currentUserId.value ?: "current_user_id" // Gunakan ID pengguna saat ini
         )
 
-        // Update UI secara optimis
         _postDetail.value = currentPost.copy(
             comments = currentPost.comments + optimisticComment
         )
@@ -260,11 +245,9 @@ class PostViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 postRepository.addComment(postId, content)
-                // Refresh detail post untuk mendapatkan data asli
                 getPostDetail(postId)
             } catch (e: Exception) {
                 _error.value = "Gagal menambahkan komentar."
-                // Rollback jika gagal
                 _postDetail.value = currentPost.copy(
                     comments = currentPost.comments.filter { it.id != optimisticCommentId }
                 )

@@ -23,5 +23,8 @@ data class UserData(
 
     @SerializedName("username")
     val username: String,
+
+    @SerializedName("profilePicture") // Add this line
+    val profilePicture: String? = null // Add this line
     // Anda bisa menambahkan properti lain jika perlu (posts, likes, dll)
 )
