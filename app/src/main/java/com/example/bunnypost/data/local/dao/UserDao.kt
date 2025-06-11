@@ -17,14 +17,4 @@ interface UserDao {
 
     @Query("DELETE FROM users")
     fun deleteAll()
-
-    @Query("""
-        SELECT * FROM users 
-        WHERE LOWER(username) LIKE '%' || LOWER(:query) || '%' 
-           OR LOWER(firstName) LIKE '%' || LOWER(:query) || '%' 
-           OR LOWER(lastName) LIKE '%' || LOWER(:query) || '%'
-    """)
-    fun searchUsers(query: String): Flow<List<UserEntity>>
-
-
 }

@@ -29,4 +29,13 @@ interface ApiService {
         @Query("search") query: String
     ): UserListResponse
 
+    @GET("posts/{id}")
+    suspend fun getPostById(
+        @Header("Authorization") token: String,
+        @Path("id") postId: String
+    ): PostsResponse
+
+
+
+
 }

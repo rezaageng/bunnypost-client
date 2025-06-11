@@ -18,23 +18,8 @@ interface PostDao {
     @Query("DELETE FROM posts")
     fun clearAllPosts(): Int
 
-
-
-
-
-    @Query("SELECT * FROM posts WHERE title LIKE '%' || :query || '%' OR content LIKE '%' || :query || '%'")
-    fun searchPosts(query: String): Flow<List<PostEntity>>
-
     @Query("SELECT * FROM posts WHERE id = :postId LIMIT 1")
     fun getPostById(postId: String): Flow<PostEntity?>
 
-    @Query("""
-    SELECT DISTINCT *
-    FROM posts 
-    WHERE LOWER(authorUsername) LIKE '%' || LOWER(:query) || '%'
-       OR LOWER(authorFirstName) LIKE '%' || LOWER(:query) || '%'
-       OR LOWER(authorLastName) LIKE '%' || LOWER(:query) || '%'
-""")
-    fun searchAuthorsFromPosts(query: String): Flow<List<PostEntity>>
 
 }
