@@ -27,7 +27,6 @@ interface ApiService {
         @Header("Authorization") token: String
     ): MeResponse
 
-    // Diubah untuk menargetkan users/{id}
     @Multipart
     @PUT("users/{id}")
     suspend fun updateMyProfile(
@@ -51,7 +50,9 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Query("search") searchQuery: String?,
         @Query("page") page: Int,
-        @Query("limit") limit: Int
+        @Query("limit") limit: Int,
+        // Parameter authorId ditambahkan di sini
+        @Query("authorId") authorId: String? = null
     ): PostsResponse
 
     @GET("users")

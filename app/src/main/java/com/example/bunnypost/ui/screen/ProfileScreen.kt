@@ -1,3 +1,4 @@
+// File: ProfileScreen.kt (VERSI FINAL YANG SUDAH DIPERBAIKI)
 package com.example.bunnypost.ui.screen
 
 import androidx.compose.foundation.background
@@ -18,20 +19,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+// --- IMPORT YANG HILANG, SEKARANG SUDAH DITAMBAHKAN ---
 import com.example.bunnypost.data.helper.Result
+import com.example.bunnypost.data.local.entity.PostEntity
 import com.example.bunnypost.viewmodel.ProfileViewModel
 
 @Composable
 fun ProfileScreen(
-    // Terima ViewModel sebagai parameter
     profileViewModel: ProfileViewModel,
     onLogout: () -> Unit,
     onEditProfileClick: () -> Unit
 ) {
+    // State di-collect di level atas, ini sudah benar
     val profileState by profileViewModel.profileState.collectAsState()
+    val userPostsState by profileViewModel.userPostsState.collectAsState()
+    val likedPostsState by profileViewModel.likedPostsState.collectAsState()
     var selectedTabIndex by remember { mutableStateOf(0) }
 
-    // Memastikan data selalu segar setiap kali layar ini ditampilkan
     LaunchedEffect(Unit) {
         profileViewModel.fetchMyProfile()
     }
@@ -51,7 +55,7 @@ fun ProfileScreen(
             is Result.Success -> {
                 val user = state.data
 
-                if (user.profilePicture != null && user.profilePicture.isNotEmpty()) {
+                if (!user.profilePicture.isNullOrEmpty()) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(user.profilePicture)
@@ -152,8 +156,12 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 when (selectedTabIndex) {
-                    0 -> UserPostsList(profileViewModel = profileViewModel)
-                    1 -> UserLikesList(profileViewModel = profileViewModel)
+                    0 -> {
+                        UserContentList(state = userPostsState, emptyMessage = "You haven't posted anything yet.")
+                    }
+                    1 -> {
+                        UserContentList(state = likedPostsState, emptyMessage = "You haven't liked any posts yet.")
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -187,47 +195,48 @@ fun ProfileScreen(
 }
 
 @Composable
-fun UserPostsList(profileViewModel: ProfileViewModel) {
-    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Posts by this user will appear here.")
-        // Anda dapat mengganti LazyColumn ini dengan data posts sebenarnya dari ViewModel
-        // untuk pengguna yang sedang login. Ini adalah placeholder.
-        LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
-            items(5) { index ->
-                Card(
+fun UserContentList(state: Result<List<PostEntity>>, emptyMessage: String) {
+    when (state) {
+        is Result.Loading -> {
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+        is Result.Success -> {
+            val posts = state.data
+            if (posts.isEmpty()) {
+                Text(emptyMessage, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp),
+                        .heightIn(max = 400.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Post Title ${index + 1}", fontWeight = FontWeight.Bold)
-                        Text("This is the content of post ${index + 1}.")
+                    items(posts, key = { it.id }) { postEntity ->
+                        SimplePostCard(post = postEntity)
                     }
                 }
             }
+        }
+        is Result.Error -> {
+            Text("Error: ${state.message}", color = MaterialTheme.colorScheme.error)
         }
     }
 }
 
 @Composable
-fun UserLikesList(profileViewModel: ProfileViewModel) {
-    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Liked posts will appear here.")
-        // Anda dapat mengganti LazyColumn ini dengan data posts yang disukai oleh pengguna
-        // yang sedang login. Ini adalah placeholder.
-        LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
-            items(3) { index ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Liked Post Title ${index + 1}", fontWeight = FontWeight.Bold)
-                        Text("This is a liked post by the user.")
-                    }
-                }
-            }
+fun SimplePostCard(post: PostEntity) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(post.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(post.content, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
         }
     }
 }
