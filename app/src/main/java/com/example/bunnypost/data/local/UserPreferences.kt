@@ -12,20 +12,20 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-// Deklarasikan instance DataStore di tingkat atas file (hanya satu deklarasi)
+
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_preferences")
 
 @Singleton
 class UserPreferences @Inject constructor(@ApplicationContext private val context: Context) {
 
-    // Kunci untuk menyimpan token otentikasi
+
     private val userTokenKey = stringPreferencesKey("user_token")
 
-    // Kunci untuk menyimpan ID pengguna
+
     private val userIdKey = stringPreferencesKey("user_id")
 
-    // Kunci baru untuk menyimpan username
-    private val usernameKey = stringPreferencesKey("username") // Tambahkan baris ini
+
+    private val usernameKey = stringPreferencesKey("username")
 
     suspend fun saveUserToken(token: String) {
         context.dataStore.edit { preferences ->
@@ -51,24 +51,24 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
         }
     }
 
-    suspend fun saveUsername(username: String) { // Tambahkan fungsi ini
+    suspend fun saveUsername(username: String) {
         context.dataStore.edit { preferences ->
             preferences[usernameKey] = username
         }
     }
 
-    fun getUsername(): Flow<String?> { // Tambahkan fungsi ini
+    fun getUsername(): Flow<String?> {
         return context.dataStore.data.map { preferences ->
             preferences[usernameKey]
         }
     }
 
-    // Fungsi clear untuk menghapus semua data user saat logout
+
     suspend fun clearUserData() {
         context.dataStore.edit { preferences ->
             preferences.remove(userTokenKey)
             preferences.remove(userIdKey)
-            preferences.remove(usernameKey) // Juga hapus username
+            preferences.remove(usernameKey)
         }
     }
 }

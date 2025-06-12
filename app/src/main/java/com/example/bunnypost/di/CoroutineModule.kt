@@ -23,7 +23,7 @@ object CoroutineModule {
     @ApplicationScope
     @Provides
     fun providesCoroutineScope(): CoroutineScope {
-        // Run on a background thread
+
         return CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }

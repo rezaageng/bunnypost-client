@@ -14,14 +14,14 @@ import retrofit2.http.*
 
 interface ApiService {
 
-    // 🔐 Login
+
     @FormUrlEncoded
     @POST("auth/signin")
     suspend fun login(
         @FieldMap params: Map<String, String>
     ): LoginResponse
 
-    // 🔐 Signup
+
     @FormUrlEncoded
     @POST("auth/signup")
     suspend fun signup(
@@ -33,7 +33,7 @@ interface ApiService {
         @Header("Authorization") token: String
     ): MeResponse
 
-    // 📝 Create new post
+
     @FormUrlEncoded
     @POST("posts")
     suspend fun createPost(
@@ -42,7 +42,7 @@ interface ApiService {
         @Field("content") content: String
     )
 
-    // 📥 Get all posts (paginated & optional search)
+
     @GET("posts")
     suspend fun getPosts(
         @Header("Authorization") token: String,
@@ -63,22 +63,22 @@ interface ApiService {
         @Path("id") postId: String
     ): PostDetailResponse
 
-    // ❤️ Like a post (DIUBAH)
+
     @FormUrlEncoded
-    @POST("likes") // URL diubah ke /api/likes
+    @POST("likes")
     suspend fun likePost(
         @Header("Authorization") token: String,
-        @Field("postId") postId: String // postId dikirim sebagai field di body
+        @Field("postId") postId: String
     )
 
-    // 💬 Add comment to post (DIUBAH)
+
     @FormUrlEncoded
-    @POST("comments") // URL diubah ke /api/comments
+    @POST("comments")
     suspend fun addComment(
         @Header("Authorization") token: String,
         @Field("postId") postId: String,
         @Field("content") content: String
-    ): Response<Unit> // <-- TAMBAHKAN BAGIAN INI
+    ): Response<Unit>
 
     @DELETE("likes/{id}")
     suspend fun unlikePost(

@@ -50,27 +50,27 @@ class AuthRepository @Inject constructor(
     fun signup(email: String, password: String, username: String, firstName: String, lastName: String): Flow<Result<String>> = flow {
         emit(Result.Loading)
         try {
-            // Langkah 1: Mendaftar untuk mendapatkan token
+
             val signupResponse = apiService.signup(SignUpRequest(email, password, username, firstName, lastName).toMap())
 
             if (signupResponse.success) {
                 val token = signupResponse.token
                 userPreferences.saveUserToken(token)
 
-                // Langkah 2: Panggil endpoint /users/me menggunakan token baru
+
                 val meResponse = apiService.getMe("Bearer $token")
                 if (meResponse.success) {
-                    // Langkah 3: Simpan userId dan username yang didapat dari /users/me
+
                     val userId = meResponse.data.id
-                    val registeredUsername = meResponse.data.username // Ambil username
+                    val registeredUsername = meResponse.data.username
                     userPreferences.saveUserId(userId)
-                    userPreferences.saveUsername(registeredUsername) // Simpan username
+                    userPreferences.saveUsername(registeredUsername)
                 } else {
-                    // Jika gagal mengambil data 'me', anggap sebagai error
+
                     throw Exception(meResponse.message)
                 }
 
-                // Kirim sinyal sukses setelah semua data (token, userId, & username) tersimpan
+
                 emit(Result.Success(token))
             } else {
                 throw Exception(signupResponse.message)

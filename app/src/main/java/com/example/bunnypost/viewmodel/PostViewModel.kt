@@ -42,7 +42,7 @@ class PostViewModel @Inject constructor(
     private val _isCommenting = MutableStateFlow(false)
     val isCommenting: StateFlow<Boolean> = _isCommenting.asStateFlow()
 
-    // Fungsi untuk di-trigger dari UI
+
     fun onCommentTextChanged(newText: String) {
         _commentText.value = newText
     }
@@ -243,20 +243,20 @@ class PostViewModel @Inject constructor(
 
         viewModelScope.launch {
             _isCommenting.value = true
-            _error.value = null // Bersihkan error sebelumnya
+            _error.value = null
             try {
                 val result = postRepository.addComment(postId, commentContent)
 
                 result.onSuccess {
-                    _commentText.value = "" // Kosongkan text field setelah berhasil
-                    getPostDetail(postId) // Refresh data untuk menampilkan komentar baru
+                    _commentText.value = ""
+                    getPostDetail(postId)
                 }.onFailure { exception ->
                     _error.value = exception.message ?: "Terjadi kesalahan"
                 }
             } catch (e: Exception) {
                 _error.value = e.message
             } finally {
-                _isCommenting.value = false // Pastikan ini selalu dijalankan
+                _isCommenting.value = false
             }
         }
     }

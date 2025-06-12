@@ -14,7 +14,7 @@ data class PostEntity(
     val authorUsername: String,
     val authorFirstName: String,
     val authorLastName: String,
-    val profilePicture: String? = null, // Tambahkan baris ini
+    val profilePicture: String? = null,
     val likesCount: Int = 0,
     val commentsCount: Int = 0,
     val isLiked: Boolean = false

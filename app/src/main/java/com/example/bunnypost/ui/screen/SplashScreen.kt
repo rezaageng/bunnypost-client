@@ -31,6 +31,6 @@ fun SplashScreen(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator() // You can replace this with your app's logo
+        CircularProgressIndicator()
     }
 }

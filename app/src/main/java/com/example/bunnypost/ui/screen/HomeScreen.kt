@@ -22,7 +22,7 @@ import androidx.compose.ui.res.stringResource // Import for string resources
 import com.example.bunnypost.R // Import R class to access resources
 import androidx.compose.ui.text.font.FontWeight
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class) // Add ExperimentalMaterial3Api
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: PostViewModel,
@@ -39,13 +39,13 @@ fun HomeScreen(
         onRefresh = { viewModel.refreshPosts() }
     )
 
-    // Wrap the content with Scaffold to add a topBar
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.app_name), // Get app name from strings.xml
+                        text = stringResource(id = R.string.app_name),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -55,11 +55,11 @@ fun HomeScreen(
                 )
             )
         }
-    ) { innerPadding -> // Use innerPadding to apply padding to the content
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding) // Apply padding from Scaffold
+                .padding(innerPadding)
                 .pullRefresh(pullRefreshState)
         ) {
             LazyColumn(
@@ -69,7 +69,7 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
-            // Item untuk membuat postingan baru
+
             item {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
@@ -98,16 +98,15 @@ fun HomeScreen(
                 }
             }
 
-            // Item untuk daftar postingan
+
             items(posts, key = { it.id }) { postEntity ->
-                // Obyek 'Post' ini dibuat hanya untuk kompatibilitas dengan 'PostItem'
-                // Data utama yang ditampilkan berasal dari 'postEntity'
+
                 val post = Post(
                     id = postEntity.id,
                     title = postEntity.title,
                     content = postEntity.content,
                     createdAt = postEntity.createdAt,
-                    updatedAt = "", // Tidak digunakan di list
+                    updatedAt = "",
                     authorId = postEntity.authorId,
                     author = Author(
                         id = postEntity.authorId,
@@ -115,22 +114,21 @@ fun HomeScreen(
                         firstName = postEntity.authorFirstName,
                         lastName = postEntity.authorLastName
                     ),
-                    comments = emptyList(), // Tidak digunakan di list
-                    likes = emptyList()      // Tidak digunakan di list
+                    comments = emptyList(),
+                    likes = emptyList()
                 )
 
                 PostItem(
                     post = post,
                     onClick = { onPostClick(post.id) },
-                    // Gunakan fungsi toggle yang sudah kita buat
                     onLikeClick = { viewModel.toggleLikeOnList(post.id) },
                     likesCount = postEntity.likesCount,
                     commentsCount = postEntity.commentsCount,
-                    isLiked = postEntity.isLiked // <-- TAMBAHKAN BARIS INI
+                    isLiked = postEntity.isLiked
                 )
             }
 
-            // Indikator loading di bagian bawah saat paginasi
+
             if (isPaginating) {
                 item {
                     Box(
@@ -145,7 +143,6 @@ fun HomeScreen(
             }
         }
 
-        // Logika untuk mendeteksi scroll hingga ke bawah untuk memuat lebih banyak data
         val isScrolledToEnd by remember {
             derivedStateOf {
                 val layoutInfo = listState.layoutInfo
@@ -167,7 +164,7 @@ fun HomeScreen(
             }
         }
 
-        // Menampilkan pesan error jika ada
+
         error?.let {
             Snackbar(
                 modifier = Modifier
@@ -178,7 +175,7 @@ fun HomeScreen(
             }
         }
 
-        // Indikator pull-to-refresh di bagian atas
+
         PullRefreshIndicator(
             refreshing = isLoading,
             state = pullRefreshState,

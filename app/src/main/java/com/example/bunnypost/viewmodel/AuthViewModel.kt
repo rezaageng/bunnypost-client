@@ -15,10 +15,10 @@ import com.example.bunnypost.data.helper.Result
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    val sessionManager: SessionManager // Make session manager accessible to the UI
+    val sessionManager: SessionManager
 ) : ViewModel() {
 
-    // ... existing code
+
 
     private val _loginState = MutableStateFlow<Result<String>?>(null)
     val loginState: StateFlow<Result<String>?> = _loginState.asStateFlow()

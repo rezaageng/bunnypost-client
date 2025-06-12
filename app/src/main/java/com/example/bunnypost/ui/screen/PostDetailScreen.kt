@@ -24,22 +24,22 @@ import androidx.compose.material.icons.filled.ArrowBack // Import this
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostDetailScreen(postId: String,  onBack: () -> Unit, viewModel: PostViewModel = hiltViewModel()) {
-    // Mengambil semua state yang dibutuhkan dari ViewModel
+
     val postDetail by viewModel.postDetail.collectAsState()
-    val commentText by viewModel.commentText.collectAsState() // State untuk input field
-    val isCommenting by viewModel.isCommenting.collectAsState() // State khusus untuk proses kirim comment
+    val commentText by viewModel.commentText.collectAsState()
+    val isCommenting by viewModel.isCommenting.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val isLiked by viewModel.isLikedByCurrentUser.collectAsState()
 
-    // Fetch data saat screen pertama kali dibuka
+
     LaunchedEffect(postId) {
         viewModel.getPostDetail(postId)
     }
 
     Scaffold(
-        // Menempatkan input komentar di bagian bawah layar
-        topBar = { // Add this topBar block
+
+        topBar = {
             CenterAlignedTopAppBar(
                 title = {
                     Text(
@@ -65,7 +65,7 @@ fun PostDetailScreen(postId: String,  onBack: () -> Unit, viewModel: PostViewMod
         bottomBar = {
             CommentInputField(
                 value = commentText,
-                onValueChange = { viewModel.onCommentTextChanged(it) }, // Update state di ViewModel
+                onValueChange = { viewModel.onCommentTextChanged(it) },
                 onSendClick = { viewModel.addComment(postId) },
                 isSending = isCommenting
             )
@@ -110,7 +110,7 @@ fun PostContent(post: Post, isLiked: Boolean, onLikeClick: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(vertical = 16.dp)
     ) {
-        // --- KARTU DETAIL POST ---
+
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -130,7 +130,7 @@ fun PostContent(post: Post, isLiked: Boolean, onLikeClick: () -> Unit) {
                     Spacer(Modifier.height(16.dp))
                     Divider()
                     Spacer(Modifier.height(16.dp))
-                    // Tombol Like dan Comment
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -153,7 +153,7 @@ fun PostContent(post: Post, isLiked: Boolean, onLikeClick: () -> Unit) {
             }
         }
 
-        // --- JUDUL BAGIAN KOMENTAR ---
+
         item {
             Text(
                 "Komentar",
@@ -162,7 +162,7 @@ fun PostContent(post: Post, isLiked: Boolean, onLikeClick: () -> Unit) {
             )
         }
 
-        // --- DAFTAR KOMENTAR ---
+
         items(post.comments, key = { it.id }) { comment ->
             Card(
                 modifier = Modifier.fillMaxWidth(),

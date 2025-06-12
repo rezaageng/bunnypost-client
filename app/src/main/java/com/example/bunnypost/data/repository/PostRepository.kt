@@ -75,21 +75,20 @@ class PostRepository @Inject constructor(
         val userId =
             userPreferences.getUserId().firstOrNull() ?: throw Exception("User ID not found")
 
-        // 1. Dapatkan detail post untuk menemukan ID like
+
         val post = getPostById(postId)
 
-        // 2. Cari 'like' yang dibuat oleh pengguna saat ini
+
         val like = post.likes.find { it.authorId == userId }
             ?: throw Exception("User has not liked this post")
 
-        // 3. Panggil API untuk menghapus like menggunakan ID-nya
         apiService.unlikePost("Bearer $token", like.id)
     }
 
     suspend fun addComment(postId: String, content: String): Result<Unit> {
         return try {
             val token = userPreferences.getToken().firstOrNull() ?: throw Exception("Token tidak ditemukan")
-            // Pastikan ApiService Anda mengembalikan Response<Unit> untuk fungsi ini
+
             val response = apiService.addComment("Bearer $token", postId, content)
             if (response.isSuccessful) {
                 Result.success(Unit)
