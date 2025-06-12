@@ -68,34 +68,7 @@ fun HomeScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Item untuk membuat postingan baru
-                item {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        OutlinedTextField(
-                            value = viewModel.title,
-                            onValueChange = { viewModel.title = it },
-                            label = { Text("Judul") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = viewModel.content,
-                            onValueChange = { viewModel.content = it },
-                            label = { Text("Konten") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(
-                            onClick = { viewModel.submitPost() },
-                            enabled = viewModel.title.isNotBlank() && viewModel.content.isNotBlank(),
-                            modifier = Modifier.align(Alignment.End)
-                        ) {
-                            Text("Posting")
-                        }
-                    }
-                }
+
             // Item untuk membuat postingan baru
             item {
                 Column(modifier = Modifier.fillMaxWidth()) {
