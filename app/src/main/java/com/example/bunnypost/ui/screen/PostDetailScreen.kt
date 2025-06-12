@@ -19,10 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bunnypost.data.remote.model.Post
 import com.example.bunnypost.viewmodel.PostViewModel
+import androidx.compose.material.icons.filled.ArrowBack // Import this
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostDetailScreen(postId: String, viewModel: PostViewModel = hiltViewModel()) {
+fun PostDetailScreen(postId: String,  onBack: () -> Unit, viewModel: PostViewModel = hiltViewModel()) {
     // Mengambil semua state yang dibutuhkan dari ViewModel
     val postDetail by viewModel.postDetail.collectAsState()
     val commentText by viewModel.commentText.collectAsState() // State untuk input field
@@ -38,6 +39,29 @@ fun PostDetailScreen(postId: String, viewModel: PostViewModel = hiltViewModel())
 
     Scaffold(
         // Menempatkan input komentar di bagian bawah layar
+        topBar = { // Add this topBar block
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "Post Detail",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            )
+        },
         bottomBar = {
             CommentInputField(
                 value = commentText,

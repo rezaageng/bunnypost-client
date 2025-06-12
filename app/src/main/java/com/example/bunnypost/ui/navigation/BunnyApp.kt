@@ -102,7 +102,11 @@ fun BunnyApp() {
             arguments = listOf(navArgument("postId") { type = NavType.StringType })
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
-            PostDetailScreen(postId = postId)
+            // Define and pass onBack here
+            PostDetailScreen(
+                postId = postId,
+                onBack = { navController.popBackStack() } // Corrected line
+            )
         }
     }
 }
