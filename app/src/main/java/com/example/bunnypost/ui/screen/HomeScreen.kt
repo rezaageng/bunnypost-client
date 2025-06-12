@@ -17,8 +17,12 @@ import com.example.bunnypost.data.remote.model.Author
 import com.example.bunnypost.data.remote.model.Post
 import com.example.bunnypost.ui.components.PostItem
 import com.example.bunnypost.viewmodel.PostViewModel
+import androidx.compose.material3.* // Import Material3 components
+import androidx.compose.ui.res.stringResource // Import for string resources
+import com.example.bunnypost.R // Import R class to access resources
+import androidx.compose.ui.text.font.FontWeight
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class) // Add ExperimentalMaterial3Api
 @Composable
 fun HomeScreen(
     viewModel: PostViewModel,
@@ -35,17 +39,36 @@ fun HomeScreen(
         onRefresh = { viewModel.refreshPosts() }
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pullRefresh(pullRefreshState)
-    ) {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+    // Wrap the content with Scaffold to add a topBar
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(id = R.string.app_name), // Get app name from strings.xml
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            )
+        }
+    ) { innerPadding -> // Use innerPadding to apply padding to the content
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding) // Apply padding from Scaffold
+                .pullRefresh(pullRefreshState)
         ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+
             // Item untuk membuat postingan baru
             item {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -162,4 +185,5 @@ fun HomeScreen(
             modifier = Modifier.align(Alignment.TopCenter)
         )
     }
+}
 }
