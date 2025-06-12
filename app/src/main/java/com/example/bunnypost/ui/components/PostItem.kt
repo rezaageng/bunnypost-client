@@ -37,8 +37,8 @@ fun PostItem(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) { // Tambahkan Row ini
-                // Tambahkan AsyncImage untuk foto profil
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
                 post.author.profilePicture?.let { imageUrl ->
                     AsyncImage(
                         model = imageUrl,
@@ -48,10 +48,10 @@ fun PostItem(
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
-                    Spacer(modifier = Modifier.width(8.dp)) // Spasi antara foto profil dan teks
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
 
-                Column { // Pindahkan ini ke dalam Column baru
+                Column {
                     Text(post.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -61,7 +61,7 @@ fun PostItem(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp)) // Spasi setelah info penulis
+            Spacer(modifier = Modifier.height(8.dp))
             Text(text = post.content, style = MaterialTheme.typography.bodyMedium, maxLines = 3)
             Spacer(modifier = Modifier.height(12.dp))
 

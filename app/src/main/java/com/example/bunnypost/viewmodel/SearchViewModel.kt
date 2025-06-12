@@ -28,12 +28,11 @@ class SearchViewModel @Inject constructor(
                     emit(emptyList())
                 } else {
                     try {
-                        emit(userRepository.searchUsers(query)) // Menangkap pengecualian di sini
+                        emit(userRepository.searchUsers(query))
                     } catch (e: Exception) {
-                        // Mengeluarkan daftar kosong jika terjadi kesalahan untuk mencegah crash
+
                         emit(emptyList())
-                        // Anda bisa menambahkan logika logging atau menampilkan pesan error di UI di sini jika diperlukan
-                        // e.g., _errorState.value = "Error fetching users: ${e.message}"
+
                     }
                 }
             }
@@ -47,11 +46,9 @@ class SearchViewModel @Inject constructor(
                 flowOf(emptyList())
             } else {
                 postRepository.searchPosts(query)
-                    .catch { e -> // Menggunakan operator .catch untuk menangani pengecualian dari Flow
-                        // Mengeluarkan daftar kosong jika terjadi kesalahan untuk mencegah crash
+                    .catch { e ->
                         emit(emptyList())
-                        // Anda bisa menambahkan logika logging atau menampilkan pesan error di UI di sini jika diperlukan
-                        // e.g., _errorState.value = "Error fetching posts: ${e.message}"
+
                     }
             }
         }

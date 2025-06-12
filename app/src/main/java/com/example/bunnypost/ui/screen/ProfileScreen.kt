@@ -50,7 +50,7 @@ fun ProfileScreen(
             }
         }
         null -> {
-            // Initial state, do nothing
+
         }
     }
 }

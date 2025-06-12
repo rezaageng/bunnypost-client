@@ -1,5 +1,3 @@
-//app/src/main/java/com/example/bunnypost/viewmodel/ProfileViewModel.kt
-
 package com.example.bunnypost.viewmodel
 
 import androidx.lifecycle.ViewModel

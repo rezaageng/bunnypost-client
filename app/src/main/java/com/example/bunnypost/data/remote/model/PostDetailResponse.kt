@@ -10,5 +10,5 @@ data class PostDetailResponse(
     val message: String,
 
     @SerializedName("data")
-    val data: Post? // Objek Post sekarang ada di dalam 'data'
+    val data: Post?
 )

@@ -22,7 +22,7 @@ class AuthInterceptor @Inject constructor(
 
         if (response.code == 401) {
             externalScope.launch {
-                // DIUBAH: dari clearUserToken() menjadi clearUserData()
+
                 userPreferences.clearUserData()
                 sessionManager.triggerLogout()
             }
