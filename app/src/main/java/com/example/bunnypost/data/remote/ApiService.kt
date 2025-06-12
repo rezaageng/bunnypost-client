@@ -8,7 +8,8 @@ import com.example.bunnypost.data.remote.model.PostsResponse
 import com.example.bunnypost.data.remote.model.SignUpResponse
 import com.example.bunnypost.data.remote.model.UserListResponse
 import com.example.bunnypost.data.remote.model.MeResponse
-import okhttp3.Response
+//import okhttp3.Response
+import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiService {
@@ -77,7 +78,7 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Field("postId") postId: String,
         @Field("content") content: String
-    )
+    ): Response<Unit> // <-- TAMBAHKAN BAGIAN INI
 
     @DELETE("likes/{id}")
     suspend fun unlikePost(
