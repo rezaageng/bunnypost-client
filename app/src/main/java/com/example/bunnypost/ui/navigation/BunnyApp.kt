@@ -14,11 +14,15 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.bunnypost.ui.screen.*
 import com.example.bunnypost.viewmodel.AuthViewModel
+import com.example.bunnypost.viewmodel.ProfileViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 @Composable
 fun BunnyApp() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = hiltViewModel()
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
     // Global logout event handler
     LaunchedEffect(Unit) {
@@ -87,12 +91,31 @@ fun BunnyApp() {
             MainScreen(
                 authViewModel = authViewModel,
                 onLogout = {
-                    navController.navigate("login") {
-                        popUpTo("main") { inclusive = true }
+                    authViewModel.logout {
+                        navController.navigate("login") {
+                            popUpTo("main") { inclusive = true }
+                        }
                     }
+                },
+                onEditProfileClick = {
+                    navController.navigate("editProfile")
                 },
                 onPostClick = { postId ->
                     navController.navigate("postDetail/$postId")
+                }
+            )
+        }
+
+        composable("editProfile") {
+            val profileViewModel: ProfileViewModel = hiltViewModel()
+            EditProfileScreen(
+                authViewModel = authViewModel,
+                profileViewModel = profileViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onProfileUpdated = {
+                    navController.popBackStack()
                 }
             )
         }

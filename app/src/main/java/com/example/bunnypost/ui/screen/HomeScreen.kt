@@ -17,6 +17,9 @@ import com.example.bunnypost.data.remote.model.Author
 import com.example.bunnypost.data.remote.model.Post
 import com.example.bunnypost.ui.components.PostItem
 import com.example.bunnypost.viewmodel.PostViewModel
+import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -83,14 +86,18 @@ fun HomeScreen(
                     id = postEntity.id,
                     title = postEntity.title,
                     content = postEntity.content,
-                    createdAt = postEntity.createdAt,
+                    // DIPERBAIKI: Gunakan 'timestamp' dan format ke String
+                    createdAt = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).format(Date(postEntity.timestamp)),
                     updatedAt = "", // Tidak digunakan di list
-                    authorId = postEntity.authorId,
+                    // DIPERBAIKI: Gunakan 'userId'
+                    authorId = postEntity.userId,
                     author = Author(
-                        id = postEntity.authorId,
+                        // DIPERBAIKI: Gunakan 'userId'
+                        id = postEntity.userId,
                         username = postEntity.authorUsername,
                         firstName = postEntity.authorFirstName,
-                        lastName = postEntity.authorLastName
+                        lastName = postEntity.authorLastName,
+                        profilePicture = postEntity.profilePicture
                     ),
                     comments = emptyList(), // Tidak digunakan di list
                     likes = emptyList()      // Tidak digunakan di list
@@ -99,11 +106,10 @@ fun HomeScreen(
                 PostItem(
                     post = post,
                     onClick = { onPostClick(post.id) },
-                    // Gunakan fungsi toggle yang sudah kita buat
                     onLikeClick = { viewModel.toggleLikeOnList(post.id) },
                     likesCount = postEntity.likesCount,
                     commentsCount = postEntity.commentsCount,
-                    isLiked = postEntity.isLiked // <-- TAMBAHKAN BARIS INI
+                    isLiked = postEntity.isLiked
                 )
             }
 

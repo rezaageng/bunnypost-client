@@ -9,8 +9,10 @@ data class PostEntity(
     val id: String,
     val title: String,
     val content: String,
-    val createdAt: String,
-    val authorId: String,
+    // Diubah dari createdAt: String menjadi timestamp: Long untuk konsistensi query dan penyimpanan waktu
+    val timestamp: Long,
+    // Diubah dari authorId: String menjadi userId: String untuk konsistensi query
+    val userId: String,
     val authorUsername: String,
     val authorFirstName: String,
     val authorLastName: String,

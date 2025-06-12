@@ -13,6 +13,7 @@ data class MeResponse(
     val data: UserData
 )
 
+// DIPERBAIKI: Tambahkan semua field yang dibutuhkan
 data class UserData(
     @SerializedName("id")
     val id: String,

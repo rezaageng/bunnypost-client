@@ -2,7 +2,6 @@ package com.example.bunnypost.ui.screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -14,16 +13,19 @@ import com.example.bunnypost.ui.navigation.BottomNavigationBar
 import com.example.bunnypost.ui.navigation.NavigationItem
 import com.example.bunnypost.viewmodel.AuthViewModel
 import com.example.bunnypost.viewmodel.PostViewModel
+import com.example.bunnypost.viewmodel.ProfileViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     authViewModel: AuthViewModel,
     onLogout: () -> Unit,
+    onEditProfileClick: () -> Unit,
     onPostClick: (String) -> Unit
 ) {
     val bottomNavController = rememberNavController()
+    // Membuat instance ViewModel di level "induk"
     val postViewModel: PostViewModel = hiltViewModel()
+    val profileViewModel: ProfileViewModel = hiltViewModel()
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController = bottomNavController) }
@@ -44,9 +46,16 @@ fun MainScreen(
                     SearchScreen(navController = bottomNavController)
                 }
                 composable(NavigationItem.Profile.route) {
-                    ProfileScreen(onLogout = {
-                        authViewModel.logout(onLogout)
-                    })
+                    // Meneruskan instance ViewModel yang sama ke ProfileScreen
+                    ProfileScreen(
+                        profileViewModel = profileViewModel, // Menggunakan instance dari induk
+                        onLogout = {
+                            authViewModel.logout {
+                                onLogout()
+                            }
+                        },
+                        onEditProfileClick = onEditProfileClick
+                    )
                 }
                 composable("post/{id}") { backStackEntry ->
                     val postId = backStackEntry.arguments?.getString("id") ?: ""

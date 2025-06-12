@@ -52,8 +52,8 @@ android {
 }
 
 dependencies {
-    implementation(libs.coil.kt.coil.compose)
-    implementation(libs.androidx.material.icons.extended)
+    implementation("androidx.compose.material:material-icons-extended-android:1.6.8") // Gunakan versi terbaru jika ada
+    implementation("io.coil-kt:coil-compose:2.6.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
